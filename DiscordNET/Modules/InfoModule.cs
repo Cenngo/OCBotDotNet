@@ -41,5 +41,13 @@ namespace DiscordNET.Modules
 
 			await Context.Channel.SendMessageAsync(embed: infoEmbed);
 		}
+
+		[Command("invite")]
+		public async Task Invite()
+		{
+			var dmChannel = await Context.User.GetOrCreateDMChannelAsync();
+
+			await dmChannel.SendMessageAsync("https://discordapp.com/api/oauth2/authorize?client_id=646070311371931661&permissions=0&scope=bot");
+		}
 	}
 }

@@ -5,8 +5,10 @@ using DiscordNET.Managers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Victoria;
+using Victoria.Enums;
 
 namespace DiscordNET.Modules
 {
@@ -15,6 +17,7 @@ namespace DiscordNET.Modules
 		private readonly LavaNode _lavaNode;
 		private readonly MusicManager _musicManager;
 		private readonly InteractiveService _interactivity;
+		private static readonly IEnumerable<int> Range = Enumerable.Range(1900, 2000);
 
 		public MusicModule ( LavaNode lavaNode, MusicManager musicManager, InteractiveService interactivity )
 		{
@@ -79,90 +82,91 @@ namespace DiscordNET.Modules
 		}
 
 		[Command("play")]
-		public async Task Play ( params string[] args )
+		public async Task Play ([Remainder] string  query)
 		{
-			var query = string.Join(" ", args);
 			var results = await _lavaNode.SearchAsync(query);
 			var player = _lavaNode.GetPlayer(Context.Guild);
 
-			LavaTrack selectedTrack;
+			LavaTrack selectedTrack = default(LavaTrack);
 
-			if (results.LoadStatus == Victoria.Enums.LoadStatus.PlaylistLoaded)
+			switch (results.LoadStatus)
 			{
-				foreach (var track in results.Tracks)
-				{
-					await _musicManager.Queue.Enqueue(track, Context);
-				}
-
-				await _musicManager.PlaylistEmbed(query, Context);
-
-				if (player.PlayerState != Victoria.Enums.PlayerState.Playing || player.PlayerState != Victoria.Enums.PlayerState.Paused)
-				{
-					var list = await _musicManager.Queue.GetItems();
-
-					var trackCollection = list.FirstOrDefault();
-
-					var result = await _musicManager.Queue.TryDequeue(trackCollection.Track);
-
-					if (result)
+				case LoadStatus.TrackLoaded:
+					selectedTrack = results.Tracks[0];
+					break;
+				case LoadStatus.PlaylistLoaded:
+					foreach (var track in results.Tracks)
 					{
-						await player.PlayAsync(trackCollection.Track);
-						await _musicManager.MusicEmbed(trackCollection);
+						await _musicManager.Queue.Enqueue(track, Context);
 					}
-					return;
-				}
+
+					await _musicManager.PlaylistEmbed(query, Context);
+
+					if (player.PlayerState != Victoria.Enums.PlayerState.Playing && player.PlayerState != Victoria.Enums.PlayerState.Paused)
+					{
+						var list = await _musicManager.Queue.GetItems();
+
+						var trackCollection = list.FirstOrDefault();
+
+						var result = await _musicManager.Queue.TryDequeue(trackCollection.Track);
+
+						if (result)
+						{
+							await player.PlayAsync(trackCollection.Track);
+							await _musicManager.MusicEmbed(trackCollection);
+						}
+						return;
+					}
+					break;
+				case LoadStatus.SearchResult:
+					break;
+				case LoadStatus.LoadFailed:
+				case LoadStatus.NoMatches:
+					var searchResponse = await _lavaNode.SearchYouTubeAsync(query);
+					var choice = new List<string>();
+
+					for (int i = 1; i <= 5; i++)
+					{
+						var item = searchResponse.Tracks.ElementAt(i - 1);
+						choice.Add($"{i}.\t{item.Title}...\t({item.Duration})");
+					}
+
+					var tracksEmbed = new EmbedBuilder()
+					{
+						Title = "Please Select the Desired Track",
+						Description = string.Join("\n", choice),
+						Color = Color.DarkPurple
+					}.Build();
+
+					var searchMessage = await Context.Channel.SendMessageAsync(embed: tracksEmbed);
+
+					var interactivity = new InteractiveService(Context.Client);
+
+					var response = await _interactivity.WaitForMessage(Context.User, Context.Channel, TimeSpan.FromMinutes(1));
+
+					if (int.TryParse(response.Content, out int index))
+					{
+						if (index > 5 || index < 1)
+						{
+							await Context.Channel.SendMessageAsync("Did not respond correctly");
+							await Context.Channel.DeleteMessageAsync(searchMessage);
+							return;
+						}
+
+						selectedTrack = searchResponse.Tracks[index - 1];
+					}
+					else
+					{
+						await Context.Channel.SendMessageAsync("Did not respond correctly");
+						await Context.Channel.DeleteMessageAsync(searchMessage);
+						return;
+					}
+					break;
+				default:
+					break;
 			}
-			else if (results.LoadStatus == Victoria.Enums.LoadStatus.TrackLoaded)
-			{
-				selectedTrack = results.Tracks[0];
-			}
-			var searchResponse = await _lavaNode.SearchYouTubeAsync(query);
 
-			if (searchResponse.LoadStatus == Victoria.Enums.LoadStatus.NoMatches && results.LoadStatus == Victoria.Enums.LoadStatus.NoMatches)
-			{
-				await Context.Channel.SendMessageAsync($"I couldn't find any matches for `{query}`");
-				return;
-			}
-			var choice = new List<string>();
-
-			for (int i = 1; i <= 5; i++)
-			{
-				var item = searchResponse.Tracks.ElementAt(i - 1);
-				choice.Add($"{i}.\t{item.Title}...\t({item.Duration})");
-			}
-
-			var tracksEmbed = new EmbedBuilder()
-			{
-				Title = "Please Select the Desired Track",
-				Description = string.Join("\n", choice),
-				Color = Color.DarkPurple
-			}.Build();
-
-			var searchMessage = await Context.Channel.SendMessageAsync(embed: tracksEmbed);
-
-			var interactivity = new InteractiveService(Context.Client);
-
-			var response = await _interactivity.WaitForMessage(Context.User, Context.Channel, TimeSpan.FromMinutes(1));
-
-			if (int.TryParse(response.Content, out int index))
-			{
-				if (index > 5 || index < 1)
-				{
-					await Context.Channel.SendMessageAsync("Did not respond correctly");
-					await Context.Channel.DeleteMessageAsync(searchMessage);
-					return;
-				}
-
-				selectedTrack = searchResponse.Tracks[index - 1];
-			}
-			else
-			{
-				await Context.Channel.SendMessageAsync("Did not respond correctly");
-				await Context.Channel.DeleteMessageAsync(searchMessage);
-				return;
-			}
-
-			if (_lavaNode.GetPlayer(Context.Guild).PlayerState == Victoria.Enums.PlayerState.Playing)
+			if (player.PlayerState == Victoria.Enums.PlayerState.Playing || player.PlayerState == Victoria.Enums.PlayerState.Paused)
 			{
 				await _musicManager.Queue.Enqueue(selectedTrack, Context);
 
@@ -209,6 +213,7 @@ namespace DiscordNET.Modules
 			await _musicManager.Queue.Remove(count);
 
 			await player.PlayAsync(track.Track);
+			await _musicManager.MusicEmbed(track);
 		}
 
 		[Command("resume")]
@@ -297,6 +302,145 @@ namespace DiscordNET.Modules
 			var player = _lavaNode.GetPlayer(Context.Guild);
 			await player.DisposeAsync();
 			await _musicManager.Queue.Dispose();
+		}
+
+		[Command("lyrics")]
+		public async Task Lyrics ()
+		{
+			if(!_lavaNode.TryGetPlayer(Context.Guild, out var player)) {
+				await ReplyAsync("I'm not connected to a voice channel.");
+				return;
+			}
+
+			if (player.PlayerState != PlayerState.Playing)
+			{
+				await ReplyAsync("Woaaah there, I'm not playing any tracks.");
+				return;
+			}
+
+			var lyrics = await player.Track.FetchLyricsFromGeniusAsync();
+			if (string.IsNullOrWhiteSpace(lyrics))
+			{
+				await ReplyAsync($"No lyrics found for {player.Track.Title}");
+				return;
+			}
+
+			var splitLyrics = lyrics.Split('\n');
+			var stringBuilder = new StringBuilder();
+			foreach (var line in splitLyrics)
+			{
+				if (Range.Contains(stringBuilder.Length))
+				{
+					await ReplyAsync($"```{stringBuilder}```");
+					stringBuilder.Clear();
+				}
+				else
+				{
+					stringBuilder.AppendLine(line);
+				}
+			}
+
+			await ReplyAsync($"```{stringBuilder}```");
+		}
+
+		[Command("lyrics alt")]
+		public async Task Lyrics2 ()
+		{
+			if (!_lavaNode.TryGetPlayer(Context.Guild, out var player))
+			{
+				await ReplyAsync("I'm not connected to a voice channel.");
+				return;
+			}
+
+			if (player.PlayerState != PlayerState.Playing)
+			{
+				await ReplyAsync("Woaaah there, I'm not playing any tracks.");
+				return;
+			}
+
+			var lyrics = await player.Track.FetchLyricsFromOVHAsync();
+			if (string.IsNullOrWhiteSpace(lyrics))
+			{
+				await ReplyAsync($"No lyrics found for {player.Track.Title}");
+				return;
+			}
+
+			var splitLyrics = lyrics.Split('\n');
+			var stringBuilder = new StringBuilder();
+			foreach (var line in splitLyrics)
+			{
+				if (Range.Contains(stringBuilder.Length))
+				{
+					await ReplyAsync($"```{stringBuilder}```");
+					stringBuilder.Clear();
+				}
+				else
+				{
+					stringBuilder.AppendLine(line);
+				}
+			}
+
+			await ReplyAsync($"```{stringBuilder}```");
+		}
+
+	[Command("now playing")]
+		[Alias("now")]
+		public async Task NowPlaying()
+		{
+			var player = _lavaNode.GetPlayer(Context.Guild);
+
+			if (player.PlayerState != PlayerState.Playing)
+			{
+				await ReplyAsync("Woaaah there, I'm not playing any tracks.");
+				return;
+			}
+
+			var track = player.Track;
+			await _musicManager.MusicEmbed(track, Context);
+		}
+
+		[Command("queue")]
+		public async Task Queue()
+		{
+			var queue = _musicManager.Queue;
+			var items = await queue.GetItems();
+
+			var description = new List<string>();
+   
+			if(items.Count > 10)
+			{
+				for(int i = 0; i < 10; i++)
+				{
+					var trackCollection = items[i];
+					description.Add($"**{i + 1}.** `{trackCollection.Track.Title}` [{trackCollection.Track.Duration}] Added by: {trackCollection.User.Username}");
+				}
+			}
+			else if (items.Count > 0)
+			{
+				var count = 1;
+				foreach(var trackCollection in items)
+				{
+					description.Add($"**{count}.** `{trackCollection.Track.Title}` [{trackCollection.Track.Duration}] Added by: {trackCollection.User.Username}");
+					count++;
+				}
+			}
+			else
+			{
+				await Context.Channel.SendMessageAsync("There are no tracks in the queue.");
+			}
+
+			var queueEmbed = new EmbedBuilder
+			{
+				Title = $"Queue for {Context.Guild.Name}",
+				Description = string.Join("\n", description),
+				Footer = new EmbedFooterBuilder
+				{
+					Text = $"Number of Tracks: {items.Count}"
+				},
+				Color = Color.DarkPurple
+			}.Build();
+
+			await Context.Channel.SendMessageAsync(embed: queueEmbed);
 		}
 	}
 }
