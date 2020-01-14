@@ -18,8 +18,8 @@ namespace DiscordNET.Modules
 
 		[Command("ping")]
 		public async Task Ping ()
-		{
-			await Context.Channel.SendMessageAsync("Pong");
+		{	
+			await ReplyAsync("Pong");
 		}
 
 		[Command("info")]

@@ -23,7 +23,7 @@ namespace DiscordNET
 				LogLevel = LogSeverity.Debug
 			});
 
-			await _client.SetGameAsync(jsonConfig.Activity, type: ActivityType.Playing);
+			await _client.SetGameAsync(">help", type: ActivityType.Playing);
 
 			await _client.StartAsync();
 			await _client.LoginAsync(Discord.TokenType.Bot, jsonConfig.Token, true);
