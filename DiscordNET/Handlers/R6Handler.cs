@@ -67,6 +67,7 @@ namespace DiscordNET.Handlers
 		{
 			var rank = string.Empty;
 			Discord.Color color;
+			int tier = -1;
 
 			var CBSNumber = new List<string>
 			{
@@ -83,61 +84,56 @@ namespace DiscordNET.Handlers
 				"II",
 				"I"
 			};
-			
-			if (mmr < 1600)
-			{
-				color = Color.DarkRed;
-				int number;
 
-				if(mmr - 1100 < 0)
-				{
-					number = 0;
-				}
-				else
-				{
-					number = (mmr - 1100) / 100;
-				}
-				rank = "Copper " + CBSNumber[number];
-			}
-			else if (mmr < 2100)
+			switch (mmr)
 			{
-				color = Color.DarkOrange;
+				case int n when (n < 1600):
+					color = new Color(0x90040b);
 
-				var number = (mmr - 1600) / 100;
-				rank = "Bronze " + CBSNumber[number];
-			}
-			else if (mmr < 2600)
-			{
-				color = Color.LightGrey;
+					if (mmr - 1100 < 0)
+					{
+						tier = 0;
+					}
+					else
+					{
+						tier = (mmr - 1100) / 100;
+					}
+					rank = "Copper " + CBSNumber[tier];
+					break;
+				case int n when (n >= 1600 && n < 2100):
+					color = new Color(0x744a1d);
 
-				var number = (mmr - 2100) / 100;
-				rank = "Silver " + CBSNumber[number];
-			}
-			else if (mmr < 3200)
-			{
-				color = Color.Gold;
+					tier = (mmr - 1600) / 100;
+					rank = "Bronze " + CBSNumber[tier];
+					break;
+				case int n when (n >= 2100 && n < 2600):
+					color = new Color(0xa1a1a1);
 
-				var number = (mmr - 2600) / 200;
-				rank = "Gold " + GPNumber[number];
-			}
-			else if (mmr < 4400)
-			{
-				color = Color.Teal;
+					tier = (mmr - 2100) / 100;
+					rank = "Silver " + CBSNumber[tier];
+					break;
+				case int n when (n >= 2600 && n < 3200):
+					color = new Color(0xe3c61e);
 
-				var number = (mmr - 3200) / 400;
-				rank = "Platinum " + GPNumber[number];
-			}
-			else if (mmr < 5000)
-			{
-				color = new Color(0x9a7cf4);
+					tier = (mmr - 2600) / 200;
+					rank = "Gold " + GPNumber[tier];
+					break;
+				case int n when (n >= 3200 && n < 4400):
+					color = new Color(0x25a9a2);
 
-				rank = "Diamond";
-			}
-			else
-			{
-				color = Color.DarkMagenta;
+					var number = (mmr - 3200) / 400;
+					rank = "Platinum " + GPNumber[tier];
+					break;
+				case int n when (n >= 4400 && n < 5000):
+					color = new Color(0x9a7cf4);
 
-				rank = "Champion";
+					rank = "Diamond";
+					break;
+				default:
+					color = new Color(0xc00f59);
+
+					rank = "Champion";
+					break;
 			}
 
 			var result = new R6Rank
