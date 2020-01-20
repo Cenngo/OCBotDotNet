@@ -24,7 +24,6 @@
   <ItemGroup>
     <Folder Include="Data\RocketLeague\" />
     <Folder Include="Data\Overwatch\" />
-    <Folder Include="Data\Rainbow6\" />
   </ItemGroup>
 
 </Project>
