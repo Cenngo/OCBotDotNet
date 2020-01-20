@@ -25,6 +25,7 @@ namespace DiscordNET.Handlers
 			using (var stream = response.GetResponseStream())
 			using (var sr = new StreamReader(stream))
 				html = sr.ReadToEnd();
+
 			var result = JsonConvert.DeserializeObject<R6NameSearch>(html);
 			return result;
 		}
@@ -128,7 +129,7 @@ namespace DiscordNET.Handlers
 			}
 			else if (mmr < 5000)
 			{
-				color = Color.DarkPurple;
+				color = new Color(0x9a7cf4);
 
 				rank = "Diamond";
 			}

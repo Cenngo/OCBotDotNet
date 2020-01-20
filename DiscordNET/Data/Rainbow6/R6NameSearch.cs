@@ -8,28 +8,28 @@ namespace DiscordNET.Data.Rainbow6
 	public struct R6NameSearch
 	{
 		[JsonProperty("results")]
-		public List<R6NameSearchResults> results { get; private set; }
+		public List<R6NameSearchResults> results { get; set; }
 		[JsonProperty("totalresults")]
-		public int resultCount { get; private set; }
+		public int resultCount { get; set; }
 	}
 
 	public struct R6NameSearchResults
 	{
 		[JsonProperty("p_id")]
-		public string pId { get; private set; }
+		public string pId { get; set; }
 		[JsonProperty("p_name")]
-		public string pName { get; private set; }
+		public string pName { get; set; }
 		[JsonProperty("p_level")]
-		public string pLevel { get; private set; }
+		public string pLevel { get; set; }
 		[JsonProperty("p_platform")]
-		public string pPlatform { get; private set; }
+		public string pPlatform { get; set; }
 		[JsonProperty("p_user")]
-		public string pUser { get; private set; }
+		public string pUser { get; set; }
 		[JsonProperty("p_currentmmr")]
-		public string pMmr { get; private set; }
+		public string pMmr { get; set; }
 		[JsonProperty("p_currentrank")]
-		public string pRank { get; private set; }
+		public string pRank { get; set; }
 		[JsonProperty("kd")]
-		public string kd { get; private set; }
+		public string kd { get; set; }
 	}
 }
