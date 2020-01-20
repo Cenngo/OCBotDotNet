@@ -46,7 +46,7 @@ namespace DiscordNET.Modules
 			await Context.Channel.SendMessageAsync(random.Next().ToString());
 		}
 		[Command("insult")]
-		public async Task Fuck(string mention)
+		public async Task InsultMention()
 		{
 			//Feature: insult multiple users
 			if (Context.Message.MentionedUsers.Count > 1)
@@ -72,7 +72,7 @@ namespace DiscordNET.Modules
 				string userLang = userMatch.langauge;
 				List<string> listOfInsults = InsultLanguage[userLang];
 				string anan = InsultLanguage[userMatch.langauge.ToLower()][randomN.Next(0, insults.TR_insults.Count)];
-				await ReplyAsync(anan + " <@" + user.Id + ">");
+				await ReplyAsync(anan+" "+user.Mention);
 			}
 			await Context.Message.DeleteAsync();
 		}
