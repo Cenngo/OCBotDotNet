@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using DiscordNET.Extensions;
 
 namespace DiscordNET.Modules
 {
@@ -48,6 +49,9 @@ namespace DiscordNET.Modules
 
 			var kd = Convert.ToDouble(stats.kd) / 100;
 
+			var favAttacker = await _r6.DecodeOperators(stats.favAttacker);
+			var favDefender = await _r6.DecodeOperators(stats.favDefender);
+
 			var embed = new EmbedBuilder
 			{
 				Title = $"{results.stats.playerName}",
@@ -56,10 +60,13 @@ namespace DiscordNET.Modules
 				Color = results.rankColor
 			}
 			.AddField("Level", stats.playerLevel, true)
-			.AddField("K/D", kd, true )
+			.AddField("K/D", kd, true)
 			.AddField("Max MMR", stats.maxMMR, true)
 			.AddField("Current MMR", stats.currentMMR, true)
 			.AddField("Current Rank", results.rank, true)
+			.AddBlankField()
+			.AddField("Favourite Attacker", favAttacker, true)
+			.AddField("Favourite Defender", favDefender, true)	
 			.Build();
 
 			await ReplyAsync(embed: embed);

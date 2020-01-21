@@ -144,5 +144,67 @@ namespace DiscordNET.Handlers
 
 			return result;
 		}
+
+		public async Task<string> DecodeOperators(string op)
+		{
+			var operators = new Dictionary<string, string>
+			{
+				{"2:1", "Smoke" },
+				{"2:2", "Castle" },
+				{"2:3", "Doc" },
+				{"2:4", "Glaz" },
+				{"2:5", "Blitz" },
+				{"2:6", "Buck" },
+				{"2:7", "Blackbeard" },
+				{"2:8", "Capitao" },
+				{"2:9", "Hibana" },
+				{"2:A", "Jackal" },
+				{"2:B", "Ying" },
+				{"2:C", "Ela" },
+				{"2:D", "Dokkaebi" },
+				{"2:F", "Maestro" },
+				{"3:1", "Mute" },
+				{"3:2", "Ash" },
+				{"3:3", "Rook" },
+				{"3:4", "Fuze" },
+				{"3:5", "IQ" },
+				{"3:6", "Frost" },
+				{"3:7", "Valkyrie" },
+				{"3:8", "Caveira" },
+				{"3:9", "Echo" },
+				{"3:A", "Mira" },
+				{"3:B", "Lesion" },
+				{"3:C", "Zofia" },
+				{"3:D", "Vigil" },
+				{"3:E", "Lion" },
+				{"3:F", "Alibi" },
+				{"4:1", "Sledge" },
+				{"4:2", "Pulse" },
+				{"4:3", "Twitch" },
+				{"4:4", "Kapkan" },
+				{"4:5", "Jager" },
+				{"4:E", "Finka" },
+				{"5:1", "Thatcher" },
+				{"5:2", "Thermite" },
+				{"5:3", "Montagne" },
+				{"5:4", "Tachanka" },
+				{"5:5", "Bandit" },
+				{"1:5", "GSG9 Recruit" },
+				{"1:4", "Spetsnaz Recruit" },
+				{"1:3", "GIGN Recruit" },
+				{"1:2", "FBI Recruit" },
+				{"1:1", "SAS Recruit" },
+				{"2:11", "Nomad" },
+				{"3:11", "Kaid" },
+				{"3:10", "Clash" },
+				{"2:10", "Maverick" },
+				{"2:12", "Gridlock" },
+				{"3:12", "Mozzie" }
+			};
+
+			if (operators.TryGetValue(op, out var opName)) return opName;
+			else return "NaN";
+ 
+		}
 	}
 }
