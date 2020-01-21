@@ -18,6 +18,7 @@
     <PackageReference Include="Discord.Net.WebSocket" Version="2.1.1" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.0" />
+    <PackageReference Include="Overwatch.Net" Version="4.2.0" />
     <PackageReference Include="Victoria" Version="5.1.2" />
   </ItemGroup>
 

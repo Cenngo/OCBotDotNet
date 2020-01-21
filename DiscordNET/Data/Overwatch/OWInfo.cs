@@ -13,10 +13,10 @@ namespace DiscordNET.Handlers
 
         //A list of the 3 roles per player
         [JsonProperty("ratings")]
-        public List<OWRoles> OW_RoleList { get; private set; }
+        public List<OWRole> OW_RoleList { get; private set; }
     }
 
-    public struct OWRoles
+    public class OWRole
     {
         [JsonProperty("level")]
         public int skillRating { get; private set; }
@@ -29,5 +29,12 @@ namespace DiscordNET.Handlers
 
         [JsonProperty("roleIcon")]
         public string roleIcon { get; private set; }
+        public OWRole()
+        {
+            skillRating = int.MinValue;
+            role = string.Empty;
+            rankIcon = string.Empty;
+            roleIcon = string.Empty;
+        }
     }
 }

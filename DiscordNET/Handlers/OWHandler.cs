@@ -1,9 +1,6 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace DiscordNET.Handlers
@@ -14,14 +11,14 @@ namespace DiscordNET.Handlers
         {
             var userName = battleTag.Replace("#", "-");
             var html = string.Empty;
-            var url = $"https://ow-api.com/v1/stats/{platform}/{region}/{userName}/complete";
+            var url = $"https://ow-api.com/v1/stats/{platform}/{region}/{userName}/profile";
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
             request.Method = "GET";
             request.ContentType = "application/json";
             using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
             using (var stream = response.GetResponseStream())
             using (var sr = new StreamReader(stream))
-                html = sr.ReadToEnd();
+                html = sr.ReadToEnd();        
             var stats = JsonConvert.DeserializeObject<OWInfo>(html);
             return stats;
         }
