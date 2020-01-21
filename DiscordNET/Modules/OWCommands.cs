@@ -25,10 +25,25 @@ namespace DiscordNET.Modules
             }
             else
             {
+                var RankColorPair = new Dictionary<string, Color>()
+                {
+                    {"bronzetier", new Color(0x964B00)},
+                    {"silvertier", new Color(0x808080)},
+                    {"goldtier", new Color(0xffd700)},
+                    {"platinumtier", new Color(0xe5e4e2)},
+                    {"diamondtier", Color.Teal },
+                    {"mastertier", new Color(0xfed8b1)},
+                    {"grandmastertier", new Color(0xffff00) }
+                };
+                var rank = roleMatch.rankIcon.Substring(59);
+                rank = rank.Remove(rank.IndexOf(".")).ToLower();
+                var rankColor = RankColorPair[rank];
                 var infoEmbed = new EmbedBuilder()
                 {
-                    Title = $"Name: {battleTag}",
-                    Color = Color.Orange
+                    Title = battleTag,
+                    Color = rankColor,
+                    ThumbnailUrl = stats.iconURL,
+                    ImageUrl = roleMatch.rankIcon
                 }
                 .AddField("Role", roleMatch.role, true)
                 .AddField("Rating", roleMatch.skillRating + " SR", true)

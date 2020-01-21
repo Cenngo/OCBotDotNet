@@ -7,11 +7,14 @@ namespace DiscordNET.Handlers
     {
         [JsonProperty("name")]
         public string name { get; private set; }
+        [JsonProperty("icon")]
+        public string iconURL { get; private set; }
 
+        //Combined SR
         [JsonProperty("rating")]
         public int avgSR { get; private set; }
 
-        //A list of the 3 roles per player
+        //A list of the all applicable roles per player
         [JsonProperty("ratings")]
         public List<OWRole> OW_RoleList { get; private set; }
     }
