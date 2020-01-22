@@ -7,7 +7,7 @@ using Victoria;
 
 namespace DiscordNET.Data.Playlist
 {
-	public class DbList
+	public class DBList
 	{
 		public int Id { get; set; }
 		public string Name { get; set; }

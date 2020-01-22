@@ -14,15 +14,18 @@ namespace DiscordNET.Managers
 	{
 		private readonly DiscordSocketClient _client;
 		private readonly CommandService _commands;
+		private LiteDatabase _botDB;
 		public ServiceManager ( DiscordSocketClient client = null, CommandService commands = null )
 		{
 			_client = client ?? new DiscordSocketClient();
 			_commands = commands ?? new CommandService();
+			_botDB = new LiteDatabase(@"BotData.db");
 		}
 
 		public IServiceProvider BuildServiceProvider () => new ServiceCollection()
 			.AddSingleton(_client)
 			.AddSingleton(_commands)
+			.AddSingleton(_botDB)
 			.AddSingleton<CommandHandler>()
 			.AddSingleton<InteractiveService>()
 			.AddSingleton<LavaConfig>()

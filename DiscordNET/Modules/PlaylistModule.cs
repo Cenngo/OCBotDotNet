@@ -5,6 +5,7 @@ using DiscordNET.Data.Playlist;
 using DiscordNET.Handlers;
 using DiscordNET.Managers;
 using LiteDB;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -19,10 +20,14 @@ namespace DiscordNET.Modules
 	public class PlaylistModule : ModuleBase<SocketCommandContext>
 	{
 		private readonly MusicManager _musicManager;
+		private LiteDatabase _database;
+		private LiteCollection<DBList> _playlistCollection;
 
-		public PlaylistModule(MusicManager musicManager)
+		public PlaylistModule(MusicManager musicManager, LiteDatabase database)
 		{
 			_musicManager = musicManager;
+			_database = database;
+			_playlistCollection = _database.GetCollection<DBList>("playlists");
 		}
 
 		[Command("Add")]
@@ -40,30 +45,40 @@ namespace DiscordNET.Modules
 					Id = track.Track.Id,
 					Title = track.Track.Title,
 					Author = track.Track.Author,
-					Url = track.Track.Url
+					Url = track.Track.Url,
+					Duration = track.Track.Duration.ToString(),
+					Position = track.Track.Position.ToString(),
+					CanSeek = track.Track.CanSeek,
+					IsStream = track.Track.IsStream
 				});
 			}
 
-			using (var db = new LiteDatabase(@"BotData.db"))
+			var playlist = new DBList
 			{
-				var playlist = new DbList
-				{
-					Name = name,
-					GuildId = Context.Guild.Id,
-					Playlist = list
-				};
-
-				var playlists = db.GetCollection<DbList>("playlists");
-				playlists.Insert(playlist);
+				Name = name,
+				GuildId = Context.Guild.Id,
+				Playlist = list
 			};
+
+			_playlistCollection.Insert(playlist);
+
 
 			await ReplyAsync("Playlist Added");
 		}
 
 		[Command("Load")]
 		public async Task LoadPlaylist(string name)
-		{			
+		{
+			try
+			{
+				
+			}
+			catch (Exception)
+			{
 
+				await ReplyAsync($"Couldn't Find a PLaylist with the name `{name}`");
+				return;
+			}
 		}
 
 		[Command("List")]
