@@ -24,7 +24,9 @@ namespace DiscordNET.Handlers
         public List<OWRole> OW_RoleList { get; private set; }
 
         [JsonProperty("competitiveStats")]
-        public OwCompStats CompStats { get; private set; }
+        public OwCareerStats CompStats { get; private set; }
+        [JsonProperty("quickPlayStats")]
+        public OwCareerStats QpStats { get; private set; }
     }
 
     public class OWRole
@@ -48,7 +50,7 @@ namespace DiscordNET.Handlers
             roleIcon = string.Empty;
         }
     }
-    public class OwCompStats
+    public class OwCareerStats
     {
         [JsonProperty("topHeroes")]
         public Dictionary<string, OwHero> allHeroes { get; }
