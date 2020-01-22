@@ -11,7 +11,31 @@ namespace DiscordNET.Modules
     public class OWCommands : ModuleBase<SocketCommandContext>
     {
         [Command("profile")]
-        public async Task GetOwProfile(string battleTag, string role, string platform = "pc", string region = "eu")
+        public async Task GetOwProfile(string battleTag, string platform = "pc", string region = "eu")
+        {
+            try
+            {
+                var OW = new Overwatch();
+                var stats = await OW.RetrieveUserStats(battleTag, region, platform);
+                var infoEmbed = new EmbedBuilder()
+                {
+                    Title = stats.name,
+                    //Color = rankColor,
+                    ThumbnailUrl = stats.iconURL
+                }
+                                .AddField("Level", stats.prestige.ToString() + stats.level.ToString(), true)
+                                .AddField("Endorsement", stats.endorsement, true)
+                                .Build();
+                await ReplyAsync(embed: infoEmbed);
+            }
+            catch (System.Exception e)
+            {
+                System.Console.WriteLine(e);
+                throw;
+            }
+        }
+        [Command("rank")]
+        public async Task GetOwRank(string battleTag, string role, string platform = "pc", string region = "eu")
         {
             var OW = new Overwatch();
             var stats = await OW.RetrieveUserStats(battleTag, region, platform);
