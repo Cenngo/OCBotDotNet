@@ -53,7 +53,7 @@ namespace DiscordNET.Handlers
     public class OwCareerStats
     {
         [JsonProperty("topHeroes")]
-        public Dictionary<string, OwHero> allHeroes { get; }
+        public Dictionary<string, OwHero> allHeroes { get; private set; }
         //Fix when API is up @ https://ow-api.com/
         //[JsonProperty("careerStats")]
         //public type careerstats
@@ -62,18 +62,18 @@ namespace DiscordNET.Handlers
     public class OwHero
     {
         [JsonProperty("timePlayed")]
-        public string TimePlayed { get; }
+        public string TimePlayed { get; private set; }
         [JsonProperty("gamesWon")]
-        public int GamesWon { get; }
+        public int GamesWon { get; private set; }
         [JsonProperty("winPercentage")]
-        public int WinPercentage { get; }
+        public int WinPercentage { get; private set; }
         [JsonProperty("weaponAccuracy")]
-        public int WeaponAcc { get; }
+        public int WeaponAcc { get; private set; }
         [JsonProperty("eliminationsPerLife")]
-        public double ElimsPerLife { get; }
+        public double ElimsPerLife { get; private set; }
         [JsonProperty("multiKillBest")]
-        public int BestKStreak { get; }
+        public int BestKStreak { get; private set; }
         [JsonProperty("objectiveKills")]
-        public int BestObjKills { get; }
+        public int BestObjKills { get; private set; }
     }
 }

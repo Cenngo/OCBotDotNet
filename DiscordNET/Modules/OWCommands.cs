@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using DiscordNET.Handlers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -17,6 +18,8 @@ namespace DiscordNET.Modules
             {
                 var OW = new Overwatch();
                 var stats = await OW.RetrieveUserStats(battleTag, region, platform);
+                Dictionary<string, OwHero> comp = stats.CompStats.allHeroes;
+                var best = await OW.SortHero(comp);
                 var infoEmbed = new EmbedBuilder()
                 {
                     Title = stats.name,
@@ -25,6 +28,7 @@ namespace DiscordNET.Modules
                 }
                                 .AddField("Level", stats.prestige.ToString() + stats.level.ToString(), true)
                                 .AddField("Endorsement", stats.endorsement, true)
+                                .AddField("Best Comp. Hero", best, true)
                                 .Build();
                 await ReplyAsync(embed: infoEmbed);
             }
