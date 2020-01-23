@@ -67,9 +67,20 @@ namespace DiscordNET.Handlers
 			_queue.RemoveRange(0, count);
 		}
 
-		public async Task EnqueueBulk ( List<QueueTrack> list)
+		public async Task EnqueueBulk ( List<LavaTrack> list, SocketCommandContext context)
 		{
-			_queue.AddRange(list);
+			var playlist = new List<QueueTrack>();
+
+			foreach (var item in list)
+			{
+				playlist.Add(new QueueTrack
+				{
+					Track = item,
+					User = context.Message.Author,
+					Channel = context.Channel as SocketTextChannel
+				});
+			}
+			_queue.AddRange(playlist);
 		}
 	}
 
