@@ -57,7 +57,7 @@ namespace DiscordNET.Modules
 		[Command("Leave")]
 		public async Task LeaveAsync ()
 		{
-			if (!_lavaNode.TryGetPlayer(Context.Guild, out var player))
+			if (!_lavaNode.TryGetPlayer (Context.Guild, out var player))
 			{
 				await ReplyAsync("I'm not connected to any voice channels!");
 				return;

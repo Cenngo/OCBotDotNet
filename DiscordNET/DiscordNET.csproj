@@ -16,15 +16,15 @@
     <PackageReference Include="Discord.Net.Rest" Version="2.1.1" />
     <PackageReference Include="Discord.Net.Webhook" Version="2.1.1" />
     <PackageReference Include="Discord.Net.WebSocket" Version="2.1.1" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.0" />
-    <PackageReference Include="Overwatch.Net" Version="4.2.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.1" />
     <PackageReference Include="Victoria" Version="5.1.2" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Data\RocketLeague\" />
     <Folder Include="Data\Rainbow6\" />
+    <Folder Include="Data\Overwatch\" />
   </ItemGroup>
 
 </Project>
