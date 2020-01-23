@@ -19,7 +19,9 @@ namespace DiscordNET.Modules
                 var OW = new Overwatch();
                 var stats = await OW.RetrieveUserStats(battleTag, region, platform);
                 Dictionary<string, OwHero> comp = stats.CompStats.allHeroes;
-                var best = await OW.SortHero(comp);
+                Dictionary<string, OwHero> qp = stats.CompStats.allHeroes;
+                var bestComp = await OW.SortHero(comp);
+                var bestQP = await OW.SortHero(qp);
                 var infoEmbed = new EmbedBuilder()
                 {
                     Title = stats.name,
@@ -28,7 +30,9 @@ namespace DiscordNET.Modules
                 }
                                 .AddField("Level", stats.prestige.ToString() + stats.level.ToString(), true)
                                 .AddField("Endorsement", stats.endorsement, true)
-                                .AddField("Best Comp. Hero", best, true)
+                                .AddField("Best Competitive Hero", bestComp.ToUpper(), true)
+                                .AddField("Best Quick-play Hero", bestQP.ToUpper(),true)
+                                .WithAuthor("Profile Summary")
                                 .Build();
                 await ReplyAsync(embed: infoEmbed);
             }
