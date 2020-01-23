@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <Folder Include="Data\RocketLeague\" />
+    <Folder Include="Data\Rainbow6\" />
     <Folder Include="Data\Overwatch\" />
   </ItemGroup>
 
