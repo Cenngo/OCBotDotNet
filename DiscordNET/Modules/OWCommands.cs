@@ -45,19 +45,21 @@ namespace DiscordNET.Modules
         [Command("rank")]
         public async Task GetOwRank(string battleTag, string role, string platform = "pc", string region = "eu")
         {
-            var OW = new Overwatch();
-            var stats = await OW.RetrieveUserStats(battleTag, region, platform);
-            List<OWRole> roles = stats.OW_RoleList;
-            var roleMatch = roles.FirstOrDefault(x => x.role == role);
+            try
+            {
+                var OW = new Overwatch();
+                var stats = await OW.RetrieveUserStats(battleTag, region, platform);
+                List<OWRole> roles = stats.OW_RoleList;
+                var roleMatch = roles.FirstOrDefault(x => x.role == role);
 
-            if (roleMatch == default(OWRole))
-            {
-                await ReplyAsync("No SR for current role...");
-                return;
-            }
-            else
-            {
-                var RankColorPair = new Dictionary<string, Color>()
+                if (roleMatch == default(OWRole))
+                {
+                    await ReplyAsync("No SR for current role...");
+                    return;
+                }
+                else
+                {
+                    var RankColorPair = new Dictionary<string, Color>()
                 {
                     {"bronzetier", new Color(0x964B00)},
                     {"silvertier", new Color(0x808080)},
@@ -67,20 +69,26 @@ namespace DiscordNET.Modules
                     {"mastertier", new Color(0xfed8b1)},
                     {"grandmastertier", new Color(0xffff00) }
                 };
-                var rank = roleMatch.rankIcon.Substring(59);
-                rank = rank.Remove(rank.IndexOf(".")).ToLower();
-                var rankColor = RankColorPair[rank];
-                var infoEmbed = new EmbedBuilder()
-                {
-                    Title = battleTag,
-                    Color = rankColor,
-                    ThumbnailUrl = stats.iconURL,
-                    ImageUrl = roleMatch.rankIcon
+                    var rank = roleMatch.rankIcon.Substring(59);
+                    rank = rank.Remove(rank.IndexOf(".")).ToLower();
+                    var rankColor = RankColorPair[rank];
+                    var infoEmbed = new EmbedBuilder()
+                    {
+                        Title = battleTag,
+                        Color = rankColor,
+                        ThumbnailUrl = stats.iconURL,
+                        ImageUrl = roleMatch.rankIcon
+                    }
+                    .AddField("Role", roleMatch.role, true)
+                    .AddField("Rating", roleMatch.skillRating + " SR", true)
+                    .Build();
+                    await ReplyAsync(embed: infoEmbed);
                 }
-                .AddField("Role", roleMatch.role, true)
-                .AddField("Rating", roleMatch.skillRating + " SR", true)
-                .Build(); 
-                await ReplyAsync(embed: infoEmbed);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
             }
         }
     }

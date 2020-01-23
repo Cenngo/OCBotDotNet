@@ -24,11 +24,11 @@ namespace DiscordNET.Handlers
             var stats = JsonConvert.DeserializeObject<OWInfo>(html);
             return stats;
         }
-        public async Task<string> SortHero(Dictionary<string, OwHero> comp)
+        public async Task<string> SortHero(Dictionary<string, OwHero> AllHeroes)
         {
             int mostValue = 0;
             string best = string.Empty;
-            foreach (var i in comp)
+            foreach (var i in AllHeroes)
             {
                 var avg = i.Value.GamesWon * i.Value.WinPercentage;
                 if (avg > mostValue)
