@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.WebSocket;
+using System;
 using System.Threading.Tasks;
 
 namespace DiscordNET.Managers
@@ -44,9 +45,10 @@ namespace DiscordNET.Managers
 			return Task.CompletedTask;
 		}
 
-		private async Task OnLog ( LogMessage arg )
+		private Task OnLog ( LogMessage arg )
 		{
-
+			Console.WriteLine(arg.ToString());
+			return Task.CompletedTask;
 		}
 	}
 }

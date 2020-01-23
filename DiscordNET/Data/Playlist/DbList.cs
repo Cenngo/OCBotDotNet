@@ -11,7 +11,13 @@ namespace DiscordNET.Data.Playlist
 	{
 		public int Id { get; set; }
 		public string Name { get; set; }
-		public ulong GuildId { get; set; }
 		public List<LavaTrack> Playlist { get; set; }
+	}
+
+	public class DBPlaylistGuild
+	{
+		public int Id { get; set; }
+		public ulong GuildId { get; set; }
+		public List<DBList> Playlists { get; set; }
 	}
 }
