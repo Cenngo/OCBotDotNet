@@ -30,16 +30,9 @@ namespace DiscordNET.Data
         }
     }
 
-    class Insult
+    class InsultCollection
     {
-        public List<string> SupportedLanguages = new List<string>
-        {
-            "tr","en"
-        };
-
-        [JsonProperty("TR")]
-        public List<String> TR_insults { get; private set; }
-        [JsonProperty("EN")]
-        public List<String> EN_insults { get; private set; }
+        public string Language { get; set; }
+        public List<String> Insults { get; set; }
     }
 }

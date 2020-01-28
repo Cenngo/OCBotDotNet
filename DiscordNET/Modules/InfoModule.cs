@@ -2,8 +2,10 @@
 using Discord.Commands;
 using Discord.WebSocket;
 using DiscordNET.Data;
+using LiteDB;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,11 +16,17 @@ namespace DiscordNET.Modules
 	{
 		private readonly DiscordSocketClient _client;
 		private readonly CommandService _commands;
+		private LiteDatabase _database;
+		private LiteCollection<userData> _userCollection;
+		private LiteCollection<InsultCollection> _insultColection;
 
-		public InfoModule ( DiscordSocketClient client, CommandService commands )
+		public InfoModule ( DiscordSocketClient client, CommandService commands, LiteDatabase database )
 		{
 			_client = client;
 			_commands = commands;
+			_database = database;
+			_userCollection = database.GetCollection<userData>("UserCollection");
+			_insultColection = database.GetCollection<InsultCollection>("InsultCollection");
 		}
 
 		[Command("ping")]
@@ -83,32 +91,23 @@ namespace DiscordNET.Modules
 		[Command("registerlang")]
 		public async Task RegisterLang(string lang)
 		{
-			UserCollection userData = JsonConvert.DeserializeObject<UserCollection>(File.ReadAllText("users.json"));
-
-			userData userMatch = userData.userList.FirstOrDefault(x => x.discordID == Context.User.Id);
-			Insult insults = JsonConvert.DeserializeObject<Insult>(File.ReadAllText("insults.json"));
-			//try
-			//{
-			//	RegionInfo myRI1 = new RegionInfo("anan");
-			//	await ctx.Channel.SendMessageAsync(myRI1.TwoLetterISORegionName);
-			//}
-			//catch (ArgumentException e)
-			//{
-			//	await ctx.Channel.SendMessageAsync(e.ToString());
-			//}
-			if (!insults.SupportedLanguages.Contains(lang)){
-				await ReplyAsync("Language "+lang+" not supported.");
-			}
-			else if (userMatch != default(userData))
+			//_database.Engine
+			//UserCollection userData = JsonConvert.DeserializeObject<UserCollection>(File.ReadAllText("users.json"));
+			var userMatch = _userCollection.FindOne(x => x.discordID == Context.User.Id);
+			if (!_insultColection.Exists(x => x.Language == lang))
 			{
-				userMatch.langauge = lang; 
+				await ReplyAsync("Language " + lang + " not supported.");
+			}
+			else if (_userCollection != null)
+			{
+				userMatch.langauge = lang;
 				await ReplyAsync("User " + userMatch.dHandle + " has been changed as a " + userMatch.langauge + " speaker.");
 			}
 			else
 			{
 				try
 				{
-					userData.userList.Add(new userData
+					_userCollection.Insert(new userData
 					{
 						dHandle = Context.User.Username + "#" + Context.User.Discriminator,
 						discordID = Context.User.Id,
@@ -123,8 +122,47 @@ namespace DiscordNET.Modules
 					throw;
 				}
 			}
+			//userData userMatch = userData.userList.FirstOrDefault(x => x.discordID == Context.User.Id);
+			InsultCollection insults = JsonConvert.DeserializeObject<InsultCollection>(File.ReadAllText("insults.json"));
+			//try
+			//{
+			//	RegionInfo myRI1 = new RegionInfo("anan");
+			//	await ctx.Channel.SendMessageAsync(myRI1.TwoLetterISORegionName);
+			//}
+			//catch (ArgumentException e)
+			//{
+			//	await ctx.Channel.SendMessageAsync(e.ToString());
+			//}
+			
+			
+			//File.WriteAllText(@"users.json", JsonConvert.SerializeObject(userData, Formatting.Indented));
+		}
+		[Command("yaraklariolustur")]
+		public async Task createDB()
+		{
+			Console.ForegroundColor = ConsoleColor.Red;
+			Console.WriteLine("yes");
 
-			File.WriteAllText(@"users.json", JsonConvert.SerializeObject(userData, Formatting.Indented));
+			_insultColection.Insert(new InsultCollection
+			{
+				Language = "TR",
+				Insults = new List<string>
+				{
+					"yarak", "zenci", "annesiz"
+				}
+			});
+			Console.WriteLine("yes1");
+
+			_insultColection.Insert(new InsultCollection
+			{
+				Language = "EN",
+				Insults = new List<string>
+				{
+					"motherfucker", "dick", "retard"
+				}
+			});
+			Console.WriteLine("yes2");
+			Console.ResetColor();
 		}
 	}
 }
