@@ -14,15 +14,15 @@ using System.Threading.Tasks;
 
 namespace DiscordNET.Modules
 {
-	public class InfoModule : ModuleBase<SocketCommandContext>
+	public class InfoModule : ModuleBase<ShardedCommandContext>
 	{
-		private readonly DiscordSocketClient _client;
+		private readonly DiscordShardedClient _client;
 		private readonly CommandService _commands;
 		private LiteDatabase _database;
 		private LiteCollection<userData> _userCollection;
 		private LiteCollection<InsultCollection> _insultColection;
 
-		public InfoModule ( DiscordSocketClient client, CommandService commands, LiteDatabase database )
+		public InfoModule ( DiscordShardedClient client, CommandService commands )
 		{
 			_client = client;
 			_commands = commands;

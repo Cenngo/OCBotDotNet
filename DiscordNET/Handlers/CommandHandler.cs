@@ -11,10 +11,10 @@ namespace DiscordNET.Handlers
 	public class CommandHandler
 	{
 		private readonly CommandService _commands;
-		private readonly DiscordSocketClient _client;
+		private readonly DiscordShardedClient _client;
 		private readonly IServiceProvider _services;
 
-		public CommandHandler ( DiscordSocketClient client, CommandService commands, IServiceProvider services )
+		public CommandHandler ( DiscordShardedClient client, CommandService commands, IServiceProvider services )
 		{
 			_client = client;
 			_commands = commands;
@@ -41,7 +41,7 @@ namespace DiscordNET.Handlers
 			message.Author.IsBot)
 				return;
 
-			var context = new SocketCommandContext(_client, message);
+			var context = new ShardedCommandContext(_client, message);
 
 			var result = await _commands.ExecuteAsync(context: context, argPos: argPos, services: _services);
 
