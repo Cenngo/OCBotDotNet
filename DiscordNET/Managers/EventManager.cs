@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using System;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace DiscordNET.Managers
@@ -47,7 +48,19 @@ namespace DiscordNET.Managers
 
 		private Task OnLog ( LogMessage arg )
 		{
-			Console.WriteLine(arg.ToString());
+			var argArray = arg.ToString().Split(" ");
+			var info = argArray[0] + " " + argArray[1];
+			string remainder = string.Empty;
+
+			for(int i = 2; i < argArray.Length; i++)
+			{
+				remainder += " " + argArray[i];
+			}
+			Console.ForegroundColor = ConsoleColor.Magenta;
+			Console.Write(info);
+			Console.ResetColor();
+			Console.Write(remainder + "\n");
+
 			return Task.CompletedTask;
 		}
 	}
