@@ -222,8 +222,26 @@ namespace DiscordNET.Modules
 
 			if (player.PlayerState != Victoria.Enums.PlayerState.Paused && player.PlayerState != Victoria.Enums.PlayerState.Stopped)
 			{
-				await Context.Channel.SendMessageAsync("Nothing is paused rigth now");
-				return;
+				if(await _musicManager.Queue.GetQueueCount() != 0)
+				{
+					var list = await _musicManager.Queue.GetItems();
+
+					var trackCollection = list.FirstOrDefault();
+
+					var result = await _musicManager.Queue.TryDequeue(trackCollection.Track);
+
+					if (result)
+					{
+						await player.PlayAsync(trackCollection.Track);
+						await _musicManager.MusicEmbed(trackCollection);
+					}
+					return;
+				}
+				else
+				{
+					await ReplyAsync("Nothing is paused rigth now");
+					return;
+				}
 			}
 
 			await player.ResumeAsync();
@@ -299,7 +317,7 @@ namespace DiscordNET.Modules
 		public async Task Dispose ()
 		{
 			var player = _lavaNode.GetPlayer(Context.Guild);
-			await player.DisposeAsync();
+			await player.StopAsync();
 			await _musicManager.Queue.Dispose();
 		}
 

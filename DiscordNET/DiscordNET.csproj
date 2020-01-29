@@ -16,6 +16,7 @@
     <PackageReference Include="Discord.Net.Rest" Version="2.1.1" />
     <PackageReference Include="Discord.Net.Webhook" Version="2.1.1" />
     <PackageReference Include="Discord.Net.WebSocket" Version="2.1.1" />
+    <PackageReference Include="LiteDB" Version="4.1.4" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.1" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.1" />
     <PackageReference Include="Victoria" Version="5.1.2" />
@@ -23,6 +24,7 @@
 
   <ItemGroup>
     <Folder Include="Data\RocketLeague\" />
+    <Folder Include="Data\Rainbow6\" />
     <Folder Include="Data\Overwatch\" />
   </ItemGroup>
 
