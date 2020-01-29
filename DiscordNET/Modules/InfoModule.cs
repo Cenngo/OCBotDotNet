@@ -3,9 +3,11 @@ using Discord.Commands;
 using Discord.WebSocket;
 using DiscordNET.Data;
 using LiteDB;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -25,8 +27,8 @@ namespace DiscordNET.Modules
 			_client = client;
 			_commands = commands;
 			_database = database;
-			_userCollection = database.GetCollection<userData>("UserCollection");
-			_insultColection = database.GetCollection<InsultCollection>("InsultCollection");
+			_userCollection = _database.GetCollection<userData>("UserCollection");
+			_insultColection = _database.GetCollection<InsultCollection>("InsultCollection");
 		}
 
 		[Command("ping")]
@@ -63,31 +65,6 @@ namespace DiscordNET.Modules
 			await dmChannel.SendMessageAsync("https://discordapp.com/api/oauth2/authorize?client_id=646070311371931661&permissions=0&scope=bot");
 		}
 
-		[Command("showuser")]
-		public async Task ShowUser()
-		{
-			UserCollection userData = JsonConvert.DeserializeObject<UserCollection>(File.ReadAllText("users.json"));
-
-			var user = userData.userList.FirstOrDefault(x => x.discordID == Context.User.Id);
-			if (user == default(userData))
-			{
-				await ReplyAsync("User is not registered to a language");
-				return;
-			}
-			else
-			{
-				var infoEmbed = new EmbedBuilder()
-				{
-					Title = $"User: {Context.User}",
-					Color = Color.Orange
-				}
-			.AddField("Handle", user.dHandle, true)
-			.AddField("Language", user.langauge.ToString(), true)
-			.Build();
-
-				await Context.Channel.SendMessageAsync(embed: infoEmbed);
-			}
-		}
 		[Command("registerlang")]
 		public async Task RegisterLang(string lang)
 		{
@@ -137,32 +114,20 @@ namespace DiscordNET.Modules
 			
 			//File.WriteAllText(@"users.json", JsonConvert.SerializeObject(userData, Formatting.Indented));
 		}
-		[Command("yaraklariolustur")]
-		public async Task createDB()
+		[Command("createdb")]
+		[RequireUserPermission(GuildPermission.Administrator)]
+		public async Task createDB ( string language, string loc )
 		{
-			Console.ForegroundColor = ConsoleColor.Red;
-			Console.WriteLine("yes");
+			var json = JsonConvert.DeserializeObject<InsultJSON>(File.ReadAllText(@loc));
+			var insults = json.Insults;
 
 			_insultColection.Insert(new InsultCollection
 			{
-				Language = "TR",
-				Insults = new List<string>
-				{
-					"yarak", "zenci", "annesiz"
-				}
+				Language = language,
+				Insults = insults
 			});
-			Console.WriteLine("yes1");
 
-			_insultColection.Insert(new InsultCollection
-			{
-				Language = "EN",
-				Insults = new List<string>
-				{
-					"motherfucker", "dick", "retard"
-				}
-			});
-			Console.WriteLine("yes2");
-			Console.ResetColor();
+			Console.WriteLine(new LogMessage(LogSeverity.Info, "Database", "Successfully Imported Insult Library").ToString());
 		}
 	}
 }

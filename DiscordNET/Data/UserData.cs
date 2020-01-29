@@ -5,34 +5,24 @@ using Newtonsoft.Json;
 
 namespace DiscordNET.Data
 {
-    public struct UserCollection
-    {
-        [JsonProperty("Users")]
-        public List<userData> userList { get; set; }
-    }
     public class userData
     {
-        //FIXME: non-private setters
-        [JsonProperty("ID")]
-        public ulong discordID { get; set; }
-
-        [JsonProperty("handle")]
+        public int Id { get; set; }
+		public ulong discordID { get; set; }
         public string dHandle { get; set; }
-
-        [JsonProperty("lang")]
         public string langauge { get; set; }
-
-        public userData()
-        {
-            discordID = ulong.MinValue;
-            dHandle = string.Empty;
-            langauge = "default";
-        }
     }
 
-    class InsultCollection
+    public class InsultCollection
     {
-        public string Language { get; set; }
+        public int Id { get; set; }
+		public string Language { get; set; }
         public List<String> Insults { get; set; }
     }
+
+	public class InsultJSON
+	{
+		[JsonProperty("insults")]
+		public List<string> Insults { get; set; }
+	}
 }
