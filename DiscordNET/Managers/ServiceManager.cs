@@ -15,7 +15,7 @@ namespace DiscordNET.Managers
 		private readonly DiscordShardedClient _client;
 		private readonly CommandService _commands;
 		private LiteDatabase _botDB;
-		public ServiceManager ( DiscordSocketClient client = null, CommandService commands = null )
+		public ServiceManager ( DiscordShardedClient client = null, CommandService commands = null )
 		{
 			_client = client ?? new DiscordShardedClient();
 			_commands = commands ?? new CommandService();
