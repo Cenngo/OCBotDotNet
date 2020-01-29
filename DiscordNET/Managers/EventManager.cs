@@ -7,14 +7,14 @@ namespace DiscordNET.Managers
 {
 	public sealed class EventManager
 	{
-		private readonly DiscordSocketClient _client;
+		private readonly DiscordShardedClient _client;
 
-		public EventManager ( DiscordSocketClient client )
+		public EventManager ( DiscordShardedClient client )
 		{
 			_client = client;
 
 			_client.Log += OnLog;
-			_client.Ready += OnReady;
+			_client.ShardReady += OnReady;
 			_client.JoinedGuild += OnJoinedGuild;
 			_client.UserIsTyping += OnUserTyping;
 		}
@@ -40,7 +40,7 @@ namespace DiscordNET.Managers
 			await arg.SystemChannel.SendMessageAsync(embed: welcomeEmbed);
 		}
 
-		private Task OnReady ()
+		private Task OnReady (DiscordSocketClient arg)
 		{
 			return Task.CompletedTask;
 		}

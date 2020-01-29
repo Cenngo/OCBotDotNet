@@ -12,12 +12,12 @@ namespace DiscordNET.Managers
 {
 	public class ServiceManager
 	{
-		private readonly DiscordSocketClient _client;
+		private readonly DiscordShardedClient _client;
 		private readonly CommandService _commands;
 		private LiteDatabase _botDB;
 		public ServiceManager ( DiscordSocketClient client = null, CommandService commands = null )
 		{
-			_client = client ?? new DiscordSocketClient();
+			_client = client ?? new DiscordShardedClient();
 			_commands = commands ?? new CommandService();
 			_botDB = new LiteDatabase(@"BotData.db");
 		}
@@ -27,7 +27,6 @@ namespace DiscordNET.Managers
 			.AddSingleton(_commands)
 			.AddSingleton(_botDB)
 			.AddSingleton<CommandHandler>()
-			.AddSingleton<InteractiveService>()
 			.AddSingleton<LavaConfig>()
 			.AddSingleton<LavaNode>()
 			.AddSingleton<MusicManager>()
