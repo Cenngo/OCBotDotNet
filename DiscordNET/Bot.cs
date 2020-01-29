@@ -14,21 +14,20 @@ namespace DiscordNET
 	public class Bot
 	{
 		public Config jsonConfig { get; private set; }
-		public DiscordShardedClient _client { get; private set; }
+		public DiscordSocketClient _client { get; private set; }
 		public async Task MainAsync ()
 		{
 			jsonConfig = JsonConvert.DeserializeObject<Config>(File.ReadAllText("config.json"));
 
-			_client = new DiscordShardedClient(new DiscordSocketConfig
+			_client = new DiscordSocketClient(new DiscordSocketConfig
 			{
-				LogLevel = LogSeverity.Debug,
-				TotalShards = 2
+				LogLevel = LogSeverity.Debug
 			});
 
 			await _client.SetGameAsync(">help", type: ActivityType.Playing);
 
 			await _client.StartAsync();
-			await _client.LoginAsync(TokenType.Bot, jsonConfig.Token, true);
+			await _client.LoginAsync(Discord.TokenType.Bot, jsonConfig.Token, true);
 
 			CommandService _commands = new CommandService(new CommandServiceConfig
 			{

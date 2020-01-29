@@ -10,11 +10,11 @@ using System.Threading.Tasks;
 
 namespace DiscordNET.Modules
 {
-	public class UtilityModule : ModuleBase<ShardedCommandContext>
+	public class UtilityModule : ModuleBase<SocketCommandContext>
 	{
-		private readonly DiscordShardedClient _client;
+		private readonly DiscordSocketClient _client;
 
-		public UtilityModule ( DiscordShardedClient client )
+		public UtilityModule ( DiscordSocketClient client )
 		{
 			_client = client;
 		}
