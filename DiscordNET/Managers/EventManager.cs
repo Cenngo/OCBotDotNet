@@ -56,7 +56,7 @@ namespace DiscordNET.Managers
 			{
 				remainder += " " + argArray[i];
 			}
-			Console.ForegroundColor = ConsoleColor.Green;
+			Console.ForegroundColor = ConsoleColor.Magenta;
 			Console.Write(info);
 			Console.ResetColor();
 			Console.Write(remainder + "\n");
