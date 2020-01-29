@@ -121,6 +121,12 @@ namespace DiscordNET.Modules
 			var json = JsonConvert.DeserializeObject<InsultJSON>(File.ReadAllText(@loc));
 			var insults = json.Insults;
 
+			if(_insultColection.Exists(x => x.Language == language))
+			{
+				await ReplyAsync("Language library with the same name already exists.");
+				return;
+			}
+
 			_insultColection.Insert(new InsultCollection
 			{
 				Language = language,
