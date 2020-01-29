@@ -11,11 +11,11 @@ namespace DiscordNET.Managers
 {
 	public class ServiceManager
 	{
-		private readonly DiscordSocketClient _client;
+		private readonly DiscordShardedClient _client;
 		private readonly CommandService _commands;
-		public ServiceManager ( DiscordSocketClient client = null, CommandService commands = null )
+		public ServiceManager ( DiscordShardedClient client = null, CommandService commands = null )
 		{
-			_client = client ?? new DiscordSocketClient();
+			_client = client ?? new DiscordShardedClient();
 			_commands = commands ?? new CommandService();
 		}
 
@@ -23,7 +23,6 @@ namespace DiscordNET.Managers
 			.AddSingleton(_client)
 			.AddSingleton(_commands)
 			.AddSingleton<CommandHandler>()
-			.AddSingleton<InteractiveService>()
 			.AddSingleton<LavaConfig>()
 			.AddSingleton<LavaNode>()
 			.AddSingleton<MusicManager>()
