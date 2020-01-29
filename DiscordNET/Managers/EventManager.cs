@@ -49,10 +49,10 @@ namespace DiscordNET.Managers
 		private Task OnLog ( LogMessage arg )
 		{
 			var argArray = arg.ToString().Split(" ");
-			var info = argArray[0] + " " + argArray[1];
+			var info = argArray[0] + " " + argArray[1] + " " + argArray[2];
 			string remainder = string.Empty;
 
-			for(int i = 2; i < argArray.Length; i++)
+			for(int i = 3; i < argArray.Length; i++)
 			{
 				remainder += " " + argArray[i];
 			}
