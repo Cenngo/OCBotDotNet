@@ -114,9 +114,9 @@ namespace DiscordNET.Modules
 			
 			//File.WriteAllText(@"users.json", JsonConvert.SerializeObject(userData, Formatting.Indented));
 		}
-		[Command("createdb")]
+		[Command("insult create")]
 		[RequireUserPermission(GuildPermission.Administrator)]
-		public async Task createDB ( string language, string loc )
+		public async Task createInsult ( string language, string loc )
 		{
 			var json = JsonConvert.DeserializeObject<InsultJSON>(File.ReadAllText(@loc));
 			var insults = json.Insults;
@@ -128,6 +128,26 @@ namespace DiscordNET.Modules
 			});
 
 			Console.WriteLine(new LogMessage(LogSeverity.Info, "Database", "Successfully Imported Insult Library").ToString());
+		}
+
+		[Command("insult add")]
+		[RequireUserPermission(GuildPermission.Administrator)]
+		public async Task addInsult (string language, string loc )
+		{
+			var json = JsonConvert.DeserializeObject<InsultJSON>(File.ReadAllText(@loc));
+			var insults = json.Insults;
+
+			var chosenLang = _insultColection.FindOne(x => x.Language == language);
+			if (chosenLang == null)
+			{
+				await ReplyAsync("Language Not Found");
+				return;
+			}
+
+			chosenLang.Insults.AddRange(insults);
+			_insultColection.Update(chosenLang);
+
+			Console.WriteLine(new LogMessage(LogSeverity.Info, "Database", "Successfully Imported and Updated Insult Library").ToString());
 		}
 	}
 }
