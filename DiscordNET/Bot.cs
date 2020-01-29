@@ -4,6 +4,7 @@ using Discord.WebSocket;
 using DiscordNET.Data;
 using DiscordNET.Handlers;
 using DiscordNET.Managers;
+using LiteDB;
 using Newtonsoft.Json;
 using System.IO;
 using System.Threading.Tasks;
@@ -23,7 +24,7 @@ namespace DiscordNET
 				LogLevel = LogSeverity.Debug
 			});
 
-			await _client.SetGameAsync(jsonConfig.Activity, type: ActivityType.Playing);
+			await _client.SetGameAsync(">help", type: ActivityType.Playing);
 
 			await _client.StartAsync();
 			await _client.LoginAsync(Discord.TokenType.Bot, jsonConfig.Token, true);
@@ -31,7 +32,8 @@ namespace DiscordNET
 			CommandService _commands = new CommandService(new CommandServiceConfig
 			{
 				CaseSensitiveCommands = false,
-				DefaultRunMode = RunMode.Async
+				DefaultRunMode = RunMode.Async,
+				LogLevel  = LogSeverity.Debug
 			});
 
 			var serviceManager = new ServiceManager(_client, _commands);
