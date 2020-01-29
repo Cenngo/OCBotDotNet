@@ -7,7 +7,7 @@ using Discord.Addons.CommandsExtension;
 
 namespace DiscordNET.Modules
 {
-	public class HelpModule : ModuleBase<ShardedCommandContext>
+	public class HelpModule : ModuleBase<SocketCommandContext>
 	{
 		private readonly CommandService _commands;
 
