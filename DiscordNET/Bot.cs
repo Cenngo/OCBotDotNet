@@ -22,6 +22,13 @@ namespace DiscordNET
 			//Set environment variable: DCBOTTOKEN with your Discord bot API token @
 			//https://discordapp.com/developers/applications/
 			string botToken = Environment.GetEnvironmentVariable("DCBOTTOKEN");
+			while (botToken.Length == 0)
+			{
+				Console.WriteLine("Checking user environment for token...");
+				botToken = Environment.GetEnvironmentVariable("DCBOTTOKEN",EnvironmentVariableTarget.User);
+				//Console.WriteLine("no token");
+			}
+			Console.WriteLine("Token: " + botToken);
 			
 			_client = new DiscordShardedClient(new DiscordSocketConfig
 			{
