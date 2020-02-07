@@ -1,8 +1,12 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using DiscordNET.Data;
 using DiscordNET.TypeReaders;
+using LiteDB;
+using Sparrow.Platform.Posix.macOS;
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
 
@@ -13,20 +17,20 @@ namespace DiscordNET.Handlers
 		private readonly CommandService _commands;
 		private readonly DiscordShardedClient _client;
 		private readonly IServiceProvider _services;
+		private readonly LiteDatabase _database;
+		private readonly LiteCollection<GuildConfig> _guildConfig;
 
 		public CommandHandler ( DiscordShardedClient client, CommandService commands, IServiceProvider services )
 		{
 			_client = client;
 			_commands = commands;
 			_services = services;
-		}
 
-		public async Task InstallCommandsAsync ()
-		{
 			_client.MessageReceived += HandleCommandAsync;
+			_commands.AddModulesAsync(Assembly.GetEntryAssembly(), _services);
 
-			_commands.AddTypeReader(typeof(Emote), new EmojiTypeReader());
-			await _commands.AddModulesAsync(Assembly.GetEntryAssembly(), _services);
+			_database = new LiteDatabase(@"BotData.db");
+			_guildConfig = _database.GetCollection<GuildConfig>("GuildConfigs");
 		}
 
 		private async Task HandleCommandAsync ( SocketMessage msg )
@@ -36,12 +40,36 @@ namespace DiscordNET.Handlers
 
 			int argPos = 0;
 
-			if (!(message.HasCharPrefix('>', ref argPos) ||
-			message.HasMentionPrefix(_client.CurrentUser, ref argPos)) ||
+			var context = new ShardedCommandContext(_client, message);
+
+			if(!_guildConfig.Exists(x => x.GuildId == context.Guild.Id))
+			{
+				_guildConfig.Insert(new GuildConfig
+				{
+					GuildId = context.Guild.Id,
+					Irritate = false,
+					WhiteList = new List<string> { },
+					Prefix = new List<string> { ">" }
+				});
+			}
+
+			if (message.HasMentionPrefix(_client.CurrentUser, ref argPos) ||
 			message.Author.IsBot)
 				return;
 
-			var context = new ShardedCommandContext(_client, message);
+			var currentConfig = _guildConfig.FindOne(x => x.GuildId == context.Guild.Id);
+			var prefixes = currentConfig.Prefix;
+
+			bool prefixValidation = false;
+
+			foreach(var prefix in prefixes)
+			{
+				if (message.HasStringPrefix(prefix, ref argPos)) 
+				{
+					prefixValidation = true;
+					break;
+				}
+			}
 
 			var result = await _commands.ExecuteAsync(context: context, argPos: argPos, services: _services);
 

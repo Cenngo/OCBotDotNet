@@ -1,11 +1,15 @@
 ﻿using Discord.Commands;
 using Discord.WebSocket;
 using DiscordNET.Data;
+using LiteDB;
 using Newtonsoft.Json;
+using Raven.Client.Documents.Smuggler;
+using Raven.Client.Json.Converters;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace DiscordNET.Modules
@@ -13,10 +17,14 @@ namespace DiscordNET.Modules
 	public class UtilityModule : ModuleBase<ShardedCommandContext>
 	{
 		private readonly DiscordShardedClient _client;
+		private readonly LiteDatabase _database;
+		private readonly LiteCollection<GuildConfig> _guildConfig;
 
-		public UtilityModule ( DiscordShardedClient client )
+		public UtilityModule ( DiscordShardedClient client, LiteDatabase database, LiteCollection<GuildConfig> guildConfig )
 		{
 			_client = client;
+			_database = database;
+			_guildConfig = guildConfig;
 		}
 
 		[Command("delete")]
@@ -75,6 +83,73 @@ namespace DiscordNET.Modules
 		//		await ReplyAsync(anan+" "+user.Mention);
 		//	}
 		//	await Context.Message.DeleteAsync();
+		}
+
+		[Command("list prefix")]
+		public async Task ListPrefixes()
+		{
+			var currentConfig = _guildConfig.FindOne(x => x.GuildId == Context.Guild.Id);
+			var prefixes = currentConfig.Prefix;
+
+			var replyString = new StringBuilder();
+
+			foreach(var item in prefixes)
+			{
+				replyString.Append(string.Concat("`", item, "`\t"));
+			}
+
+			await ReplyAsync(replyString.ToString());
+		}
+
+		[Command("add prefix")]
+		public async Task AddPrefix (string prefix)
+		{
+			var currentConfig = _guildConfig.FindOne(x => x.GuildId == Context.Guild.Id);
+
+			currentConfig.Prefix.Add(prefix);
+			_guildConfig.Update(currentConfig);
+			await ReplyAsync($"Successfully Added `{prefix}` prefix");
+		}
+
+		[Command("set irritate")]
+		public async Task SetIrritate (bool state)
+		{
+			var currentConfig = _guildConfig.FindOne(x => x.GuildId == Context.Guild.Id);
+
+			currentConfig.Irritate = state;
+			_guildConfig.Update(currentConfig);
+			await ReplyAsync($"Successfully Changed Irritation Mode to `{state}`");
+		}
+
+		[Command("whitelist add")]
+		public async Task AddWhitelist(string username)
+		{
+			var currentConfig = _guildConfig.FindOne(x => x.GuildId == Context.Guild.Id);
+
+			if(currentConfig.WhiteList.Exists(x => x == username))
+			{
+				await ReplyAsync("User is already whitelisted");
+				return;
+			}
+			currentConfig.WhiteList.Add(username);
+			_guildConfig.Update(currentConfig);
+			await ReplyAsync($"User {username} is whitelisted");
+		}
+
+		[Command("whitelist list")]
+		public async Task ListWhitelist()
+		{
+			var currentConfig = _guildConfig.FindOne(x => x.GuildId == Context.Guild.Id);
+			var prefixes = currentConfig.Prefix;
+
+			var replyString = new StringBuilder();
+
+			foreach (var item in prefixes)
+			{
+				replyString.Append(string.Concat("`", item, "`\n"));
+			}
+
+			await ReplyAsync(replyString.ToString());
 		}
 	}
 }

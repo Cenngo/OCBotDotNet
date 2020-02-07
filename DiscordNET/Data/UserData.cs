@@ -11,7 +11,7 @@ namespace DiscordNET.Data
 		public ulong discordID { get; set; }
         public string dHandle { get; set; }
         public string langauge { get; set; }
-    }
+	}
 
     public class InsultCollection
     {

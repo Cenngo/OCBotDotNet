@@ -1,5 +1,8 @@
 ﻿using Discord;
+using Discord.Commands;
 using Discord.WebSocket;
+using DiscordNET.Data;
+using LiteDB;
 using System;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -9,36 +12,46 @@ namespace DiscordNET.Managers
 	public sealed class EventManager
 	{
 		private readonly DiscordShardedClient _client;
+		private readonly LiteDatabase _botDB;
+		private readonly LiteCollection<GuildConfig> _guildConfig;
 
 		public EventManager ( DiscordShardedClient client )
 		{
 			_client = client;
+			_botDB = new LiteDatabase(@"BotData.db");
+			_guildConfig = _botDB.GetCollection<GuildConfig>("GuildConfigs");
 
 			_client.Log += OnLog;
 			_client.ShardReady += OnReady;
-			_client.JoinedGuild += OnJoinedGuild;
+			_client.UserJoined += OnJoinedGuild;
 			_client.UserIsTyping += OnUserTyping;
+		}
+
+		private async Task OnJoinedGuild ( SocketGuildUser arg )
+		{
+			SocketGuild guild = arg.Guild;
+
+			Embed welcomeEmbed = new EmbedBuilder
+			{
+				Author = new EmbedAuthorBuilder
+				{
+					Name = guild.CurrentUser.Username,
+					IconUrl = guild.CurrentUser.GetAvatarUrl()
+				},
+				Title = $"Welcome to the {guild.Name}"
+			}.Build();
+			await guild.DefaultChannel.SendMessageAsync(embed: welcomeEmbed);
 		}
 
 		private async Task OnUserTyping ( SocketUser user, ISocketMessageChannel channel )
 		{
-			//await channel.SendMessageAsync($"Ne yazyıon tipini siktigim {user.Mention}");
-		}
+			var guild = (channel as SocketGuildChannel)?.Guild;
 
-		private async Task OnJoinedGuild ( SocketGuild arg )
-		{
-			var welcomeEmbed = new EmbedBuilder()
+			var currentConfig = _guildConfig.FindOne(x => x.GuildId == guild.Id);
+			if (currentConfig.Irritate)
 			{
-				Title = $"Welcome to the {arg.Name} Server",
-				Color = Color.Orange,
-				Author = new EmbedAuthorBuilder
-				{
-					Name = $"{_client.CurrentUser.Username}",
-					IconUrl = _client.CurrentUser.GetAvatarUrl().ToString()
-				}
-			}.Build();
-
-			await arg.SystemChannel.SendMessageAsync(embed: welcomeEmbed);
+				await channel.SendMessageAsync("Ne Yazıyon Lan Amkodum");
+			}
 		}
 
 		private Task OnReady (DiscordSocketClient arg)

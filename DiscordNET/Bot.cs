@@ -43,7 +43,6 @@ namespace DiscordNET
 			var _services = serviceManager.BuildServiceProvider();
 
 			var handler = new CommandHandler(_client, _commands, _services);
-			await handler.InstallCommandsAsync();
 
 			await Task.Delay(-1);
 		}
