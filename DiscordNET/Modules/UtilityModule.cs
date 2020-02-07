@@ -133,20 +133,20 @@ namespace DiscordNET.Modules
 			}
 			currentConfig.WhiteList.Add(username);
 			_guildConfig.Update(currentConfig);
-			await ReplyAsync($"User {username} is whitelisted");
+			await ReplyAsync($"User `{username}` is whitelisted");
 		}
 
 		[Command("whitelist list")]
 		public async Task ListWhitelist()
 		{
 			var currentConfig = _guildConfig.FindOne(x => x.GuildId == Context.Guild.Id);
-			var prefixes = currentConfig.Prefix;
+			var whitelist = currentConfig.WhiteList;
 
 			var replyString = new StringBuilder();
 
-			foreach (var item in prefixes)
+			foreach (var user in whitelist)
 			{
-				replyString.Append(string.Concat("`", item, "`\n"));
+				replyString.Append(string.Concat("`", user, "`\n"));
 			}
 
 			await ReplyAsync(replyString.ToString());
