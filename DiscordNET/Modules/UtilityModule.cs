@@ -111,6 +111,19 @@ namespace DiscordNET.Modules
 			await ReplyAsync($"Successfully Added `{prefix}` prefix");
 		}
 
+		[Command("remove prefix")]
+		public async Task RemovePrefix ( string prefix )
+		{
+			var currentConfig = _guildConfig.FindOne(x => x.GuildId == Context.Guild.Id);
+
+			if (!currentConfig.Prefix.Remove(prefix))
+			{
+				return;
+			}
+			_guildConfig.Update(currentConfig);
+			await ReplyAsync($"Successfully Removed `{prefix}` prefix");
+		}
+
 		[Command("set irritate")]
 		public async Task SetIrritate (bool state)
 		{
@@ -122,18 +135,33 @@ namespace DiscordNET.Modules
 		}
 
 		[Command("whitelist add")]
-		public async Task AddWhitelist(string username)
+		public async Task AddWhitelist(params string[] mentions)
 		{
 			var currentConfig = _guildConfig.FindOne(x => x.GuildId == Context.Guild.Id);
 
-			if(currentConfig.WhiteList.Exists(x => x == username))
+			var mentionedUsers = Context.Message.MentionedUsers;
+
+			var successString = new StringBuilder();
+			var conflictString = new StringBuilder();
+
+			foreach (var user in mentionedUsers)
 			{
-				await ReplyAsync("User is already whitelisted");
-				return;
+				var userId = string.Join(" ", user.Username, user.Discriminator);
+
+				if (currentConfig.WhiteList.Exists(x => x == userId))
+				{
+					conflictString.Append($"`{user.Username}`\t");
+				}
+				else
+				{
+					successString.Append($"`{user.Username}`\t");
+					currentConfig.WhiteList.Add(userId);
+					_guildConfig.Update(currentConfig);
+				}
 			}
-			currentConfig.WhiteList.Add(username);
-			_guildConfig.Update(currentConfig);
-			await ReplyAsync($"User `{username}` is whitelisted");
+
+			if(successString.Length != 0) await ReplyAsync($"{successString} Whitelisted");
+			if(conflictString.Length != 0)await ReplyAsync($"{conflictString} Already Whitelisted");
 		}
 
 		[Command("whitelist list")]
@@ -150,6 +178,36 @@ namespace DiscordNET.Modules
 			}
 
 			await ReplyAsync(replyString.ToString());
+		}
+
+		[Command("whitelist remove")]
+		public async Task RemoveWhitelist ( params string[] mentions )
+		{
+			var currentConfig = _guildConfig.FindOne(x => x.GuildId == Context.Guild.Id);
+
+			var mentionedUsers = Context.Message.MentionedUsers;
+
+			var successString = new StringBuilder();
+			var conflictString = new StringBuilder();
+
+			foreach (var user in mentionedUsers)
+			{
+				var userId = string.Join(" ", user.Username, user.Discriminator);
+
+				if (!currentConfig.WhiteList.Exists(x => x == userId))
+				{
+					conflictString.Append($"`{user.Username}`\t");
+				}
+				else
+				{
+					successString.Append($"`{user.Username}`\t");
+					currentConfig.WhiteList.Remove(userId);
+					_guildConfig.Update(currentConfig);
+				}
+			}
+
+			if (successString.Length != 0) await ReplyAsync($"{successString} Removed from Whitelist");
+			if (conflictString.Length != 0) await ReplyAsync($"{conflictString} Already Blacklisted");
 		}
 	}
 }

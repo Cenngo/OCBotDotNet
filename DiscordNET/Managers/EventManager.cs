@@ -48,10 +48,13 @@ namespace DiscordNET.Managers
 			var guild = (channel as SocketGuildChannel)?.Guild;
 
 			var currentConfig = _guildConfig.FindOne(x => x.GuildId == guild.Id);
-			if (currentConfig.Irritate)
+			var whitelist = currentConfig.WhiteList;
+
+			if (!currentConfig.Irritate || whitelist.Exists(x => x == string.Join(" ", user.Username, user.Discriminator)))
 			{
-				await channel.SendMessageAsync("Ne Yazıyon Lan Amkodum");
+				return;
 			}
+			await channel.SendMessageAsync("Ne Yazıyon Lan Amkodum");
 		}
 
 		private Task OnReady (DiscordSocketClient arg)

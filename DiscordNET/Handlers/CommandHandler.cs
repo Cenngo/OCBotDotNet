@@ -53,26 +53,20 @@ namespace DiscordNET.Handlers
 				});
 			}
 
-			if (message.HasMentionPrefix(_client.CurrentUser, ref argPos) ||
-			message.Author.IsBot)
+			if (message.Author.IsBot || message.HasMentionPrefix(_client.CurrentUser, ref argPos))
 				return;
 
 			var currentConfig = _guildConfig.FindOne(x => x.GuildId == context.Guild.Id);
 			var prefixes = currentConfig.Prefix;
 
-			bool prefixValidation = false;
-
 			foreach(var prefix in prefixes)
 			{
 				if (message.HasStringPrefix(prefix, ref argPos)) 
 				{
-					prefixValidation = true;
-					break;
+					var result = await _commands.ExecuteAsync(context: context, argPos: argPos, services: _services);
+					return;
 				}
 			}
-
-			var result = await _commands.ExecuteAsync(context: context, argPos: argPos, services: _services);
-
 		}
 	}
 }
