@@ -13,13 +13,13 @@ namespace DiscordNET.Managers
 {
 	public class ServiceManager
 	{
-		private readonly DiscordShardedClient _client;
+		private readonly DiscordSocketClient _client;
 		private readonly CommandService _commands;
 		private readonly LiteDatabase _botDB;
 		private readonly LiteCollection<GuildConfig> _guildConfig;
 		public ServiceManager ( DiscordShardedClient client = null, CommandService commands = null )
 		{
-			_client = client ?? new DiscordShardedClient();
+			_client = client ?? new DiscordSocketClient();
 			_commands = commands ?? new CommandService();
 			_botDB = new LiteDatabase(@"BotData.db");
 			_guildConfig = _botDB.GetCollection<GuildConfig>("GuildConfigs");
@@ -31,6 +31,7 @@ namespace DiscordNET.Managers
 			.AddSingleton(_botDB)
 			.AddSingleton(_guildConfig)
 			.AddSingleton<CommandHandler>()
+			.AddSingleton<InteractiveService>()
 			.AddSingleton<LavaConfig>()
 			.AddSingleton<LavaNode>()
 			.AddSingleton<MusicManager>()

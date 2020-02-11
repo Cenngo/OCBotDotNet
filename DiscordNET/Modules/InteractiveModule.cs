@@ -4,12 +4,14 @@ using Discord.WebSocket;
 
 namespace DiscordNET.Modules
 {
-	public class InteractiveModule : ModuleBase<ShardedCommandContext>
+	public class InteractiveModule : ModuleBase<SocketCommandContext>
 	{
-		private readonly DiscordShardedClient _client;
+		private readonly InteractiveService _interactivity;
+		private readonly DiscordSocketClient _client;
 
-		public InteractiveModule ( DiscordShardedClient client)
+		public InteractiveModule ( DiscordSocketClient client, InteractiveService interactivity )
 		{
+			_interactivity = interactivity;
 			_client = client;
 		}
 	}
