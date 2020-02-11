@@ -12,17 +12,16 @@ using Victoria.Enums;
 
 namespace DiscordNET.Modules
 {
-	public class MusicModule : ModuleBase<SocketCommandContext>
+	public class MusicModule : ModuleBase<ShardedCommandContext>
 	{
 		private readonly LavaNode _lavaNode;
 		private readonly MusicManager _musicManager;
 		private static readonly IEnumerable<int> Range = Enumerable.Range(1900, 2000);
 
-		public MusicModule ( LavaNode lavaNode, MusicManager musicManager, InteractiveService interactivity )
+		public MusicModule ( LavaNode lavaNode, MusicManager musicManager )
 		{
 			_musicManager = musicManager;
 			_lavaNode = lavaNode;
-			_interactivity = interactivity;
 		}
 
 		[Command("Join")]

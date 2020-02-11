@@ -15,12 +15,12 @@ namespace DiscordNET.Handlers
 	public class CommandHandler
 	{
 		private readonly CommandService _commands;
-		private readonly DiscordSocketClient _client;
+		private readonly DiscordShardedClient _client;
 		private readonly IServiceProvider _services;
 		private readonly LiteDatabase _database;
 		private readonly LiteCollection<GuildConfig> _guildConfig;
 
-		public CommandHandler ( DiscordSocketClient client, CommandService commands, IServiceProvider services )
+		public CommandHandler ( DiscordShardedClient client, CommandService commands, IServiceProvider services )
 		{
 			_client = client;
 			_commands = commands;

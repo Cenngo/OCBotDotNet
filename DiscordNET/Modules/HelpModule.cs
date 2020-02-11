@@ -11,7 +11,7 @@ using Raven.Client.Documents.Commands.Batches;
 
 namespace DiscordNET.Modules
 {
-	public class HelpModule : ModuleBase<SocketCommandContext>
+	public class HelpModule : ModuleBase<ShardedCommandContext>
 	{
 		private readonly CommandService _commands;
 

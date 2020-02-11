@@ -2,6 +2,7 @@
 using Discord.Commands;
 using Discord.WebSocket;
 using DiscordNET.Data;
+using LiteDB;
 using Newtonsoft.Json;
 using System;
 using System.IO;
@@ -10,9 +11,9 @@ using System.Threading.Tasks;
 
 namespace DiscordNET.Modules
 {
-	public class InfoModule : ModuleBase<SocketCommandContext>
+	public class InfoModule : ModuleBase<ShardedCommandContext>
 	{
-		private readonly DiscordSocketClient _client;
+		private readonly DiscordShardedClient _client;
 		private readonly CommandService _commands;
 
 		public InfoModule ( DiscordShardedClient client, CommandService commands, LiteDatabase database )

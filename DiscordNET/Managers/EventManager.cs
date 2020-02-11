@@ -14,7 +14,7 @@ namespace DiscordNET.Managers
 		private readonly LiteDatabase _botDB;
 		private readonly LiteCollection<GuildConfig> _guildConfig;
 
-		public EventManager ( DiscordSocketClient client )
+		public EventManager ( DiscordShardedClient client )
 		{
 			_client = client;
 			_botDB = new LiteDatabase(@"BotData.db");
@@ -56,7 +56,7 @@ namespace DiscordNET.Managers
 			await channel.SendMessageAsync("Ne Yazıyon Lan Amkodum");
 		}
 
-		private Task OnReady ()
+		private Task OnReady (DiscordSocketClient arg)
 		{
 			return Task.CompletedTask;
 		}

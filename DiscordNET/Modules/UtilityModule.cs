@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace DiscordNET.Modules
 {
-	public class UtilityModule : ModuleBase<SocketCommandContext>
+	public class UtilityModule : ModuleBase<ShardedCommandContext>
 	{
 		private readonly DiscordShardedClient _client;
 		private readonly LiteDatabase _database;

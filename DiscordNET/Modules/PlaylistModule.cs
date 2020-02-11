@@ -17,7 +17,7 @@ using Victoria;
 namespace DiscordNET.Modules
 {
 	[Group("Playlist")]
-	public class PlaylistModule : ModuleBase<SocketCommandContext>
+	public class PlaylistModule : ModuleBase<ShardedCommandContext>
 	{
 		private readonly MusicManager _musicManager;
 		private LiteDatabase _database;

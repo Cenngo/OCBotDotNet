@@ -15,7 +15,7 @@ namespace DiscordNET
 	public class Bot
 	{
 		public Config jsonConfig { get; private set; }
-		public DiscordSocketClient _client { get; private set; }
+		public DiscordShardedClient _client { get; private set; }
 		public async Task MainAsync ()
 		{
 

@@ -11,7 +11,7 @@ using DiscordNET.Extensions;
 namespace DiscordNET.Modules
 {
 	[Group("R6")]
-	public class R6Module : ModuleBase<SocketCommandContext>
+	public class R6Module : ModuleBase<ShardedCommandContext>
 	{
 		private readonly DiscordSocketClient _client;
 		private readonly CommandService _commmands;
