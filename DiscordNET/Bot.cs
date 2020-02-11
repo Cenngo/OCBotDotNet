@@ -15,9 +15,10 @@ namespace DiscordNET
 	public class Bot
 	{
 		public Config jsonConfig { get; private set; }
-		public DiscordShardedClient _client { get; private set; }
+		public DiscordSocketClient _client { get; private set; }
 		public async Task MainAsync ()
 		{
+
 			//jsonConfig = JsonConvert.DeserializeObject<Config>(File.ReadAllText("config.json"));
 			//Set environment variable: DCBOTTOKEN with your Discord bot API token @
 			//https://discordapp.com/developers/applications/
@@ -32,11 +33,11 @@ namespace DiscordNET
 			
 			_client = new DiscordShardedClient(new DiscordSocketConfig
 			{
-				LogLevel = LogSeverity.Debug,
-				TotalShards = 2
+				LogLevel = LogSeverity.Debug
 			});
 
 			await _client.StartAsync();
+
 			await _client.LoginAsync(TokenType.Bot, botToken, true);
 
 			CommandService _commands = new CommandService(new CommandServiceConfig

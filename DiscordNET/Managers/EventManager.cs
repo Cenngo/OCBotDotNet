@@ -4,7 +4,6 @@ using Discord.WebSocket;
 using DiscordNET.Data;
 using LiteDB;
 using System;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace DiscordNET.Managers
@@ -15,7 +14,7 @@ namespace DiscordNET.Managers
 		private readonly LiteDatabase _botDB;
 		private readonly ILiteCollection<GuildConfig> _guildConfig;
 
-		public EventManager ( DiscordShardedClient client )
+		public EventManager ( DiscordSocketClient client )
 		{
 			_client = client;
 			_botDB = new LiteDatabase(@"BotData.db");
@@ -57,7 +56,7 @@ namespace DiscordNET.Managers
 			await channel.SendMessageAsync("Ne Yazıyon Lan Amkodum");
 		}
 
-		private Task OnReady (DiscordSocketClient arg)
+		private Task OnReady ()
 		{
 			return Task.CompletedTask;
 		}
