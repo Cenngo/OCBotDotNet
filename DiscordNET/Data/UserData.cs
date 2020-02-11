@@ -21,14 +21,7 @@ namespace DiscordNET.Data
 
         [JsonProperty("lang")]
         public string langauge { get; set; }
-
-        public userData()
-        {
-            discordID = ulong.MinValue;
-            dHandle = string.Empty;
-            langauge = "default";
-        }
-    }
+	}
 
     class Insult
     {

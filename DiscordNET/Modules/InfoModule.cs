@@ -15,7 +15,7 @@ namespace DiscordNET.Modules
 		private readonly DiscordSocketClient _client;
 		private readonly CommandService _commands;
 
-		public InfoModule ( DiscordSocketClient client, CommandService commands )
+		public InfoModule ( DiscordShardedClient client, CommandService commands, LiteDatabase database )
 		{
 			_client = client;
 			_commands = commands;

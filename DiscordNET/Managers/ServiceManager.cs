@@ -1,6 +1,7 @@
 ﻿using Discord.Addons.InteractiveCommands;
 using Discord.Commands;
 using Discord.WebSocket;
+using DiscordNET.Data;
 using DiscordNET.Data.Playlist;
 using DiscordNET.Handlers;
 using LiteDB;
@@ -14,18 +15,21 @@ namespace DiscordNET.Managers
 	{
 		private readonly DiscordSocketClient _client;
 		private readonly CommandService _commands;
-		private LiteDatabase _botDB;
-		public ServiceManager ( DiscordSocketClient client = null, CommandService commands = null )
+		private readonly LiteDatabase _botDB;
+		private readonly LiteCollection<GuildConfig> _guildConfig;
+		public ServiceManager ( DiscordShardedClient client = null, CommandService commands = null )
 		{
 			_client = client ?? new DiscordSocketClient();
 			_commands = commands ?? new CommandService();
 			_botDB = new LiteDatabase(@"BotData.db");
+			_guildConfig = _botDB.GetCollection<GuildConfig>("GuildConfigs");
 		}
 
 		public IServiceProvider BuildServiceProvider () => new ServiceCollection()
 			.AddSingleton(_client)
 			.AddSingleton(_commands)
 			.AddSingleton(_botDB)
+			.AddSingleton(_guildConfig)
 			.AddSingleton<CommandHandler>()
 			.AddSingleton<InteractiveService>()
 			.AddSingleton<LavaConfig>()

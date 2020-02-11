@@ -16,7 +16,6 @@ namespace DiscordNET.Modules
 	{
 		private readonly LavaNode _lavaNode;
 		private readonly MusicManager _musicManager;
-		private readonly InteractiveService _interactivity;
 		private static readonly IEnumerable<int> Range = Enumerable.Range(1900, 2000);
 
 		public MusicModule ( LavaNode lavaNode, MusicManager musicManager, InteractiveService interactivity )
@@ -140,9 +139,8 @@ namespace DiscordNET.Modules
 
 					var searchMessage = await Context.Channel.SendMessageAsync(embed: tracksEmbed);
 
-					var interactivity = new InteractiveService(Context.Client);
-
-					var response = await _interactivity.WaitForMessage(Context.User, Context.Channel, TimeSpan.FromMinutes(1));
+					var interactivity = new InteractiveService(Context.Client.GetShardFor(Context.Guild));
+					var response = await interactivity.WaitForMessage(Context.User, Context.Channel, TimeSpan.FromMinutes(1));
 
 					if (int.TryParse(response.Content, out int index))
 					{

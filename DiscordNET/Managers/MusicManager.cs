@@ -24,6 +24,35 @@ namespace DiscordNET.Managers
 
 			_client.Ready += OnReady;
 			_lavaNode.OnTrackEnded += OnTrackEnded;
+			_lavaNode.OnTrackStuck += OnTrackStuck;
+			_lavaNode.OnLog += LavaNode_OnLog;
+		}
+
+		private Task LavaNode_OnLog ( LogMessage arg )
+		{
+			var argArray = arg.ToString().Split(" ");
+			var info = argArray[0] + " " + argArray[1] + " " + argArray[2];
+			string remainder = string.Empty;
+
+			for (int i = 3; i < argArray.Length; i++)
+			{
+				remainder += " " + argArray[i];
+			}
+			Console.ForegroundColor = ConsoleColor.Yellow;
+			Console.Write(info);
+			Console.ResetColor();
+			Console.Write(remainder + "\n");
+
+			return Task.CompletedTask;
+		}
+
+		private Task OnTrackStuck ( TrackStuckEventArgs arg )
+		{
+			LavaPlayer player = arg.Player;
+			player.StopAsync();
+			player.TextChannel.SendMessageAsync("Encountered a problem while playing");
+
+			return Task.CompletedTask;
 		}
 
 		private async Task OnTrackEnded ( TrackEndedEventArgs arg )
