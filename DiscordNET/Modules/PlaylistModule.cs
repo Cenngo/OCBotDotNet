@@ -21,7 +21,7 @@ namespace DiscordNET.Modules
 	{
 		private readonly MusicManager _musicManager;
 		private LiteDatabase _database;
-		private LiteCollection<DBPlaylistGuild> _playlistCollection;
+		private ILiteCollection<DBPlaylistGuild> _playlistCollection;
 		private readonly LavaNode _lavaNode;
 
 		public PlaylistModule(MusicManager musicManager, LiteDatabase database, LavaNode lavaNode)

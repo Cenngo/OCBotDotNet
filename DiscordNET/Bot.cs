@@ -36,8 +36,6 @@ namespace DiscordNET
 				TotalShards = 2
 			});
 
-			await _client.SetGameAsync(">help", type: ActivityType.Playing);
-
 			await _client.StartAsync();
 			await _client.LoginAsync(TokenType.Bot, botToken, true);
 

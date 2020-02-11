@@ -18,7 +18,7 @@ namespace DiscordNET.Handlers
 		private readonly DiscordShardedClient _client;
 		private readonly IServiceProvider _services;
 		private readonly LiteDatabase _database;
-		private readonly LiteCollection<GuildConfig> _guildConfig;
+		private readonly ILiteCollection<GuildConfig> _guildConfig;
 
 		public CommandHandler ( DiscordShardedClient client, CommandService commands, IServiceProvider services )
 		{
