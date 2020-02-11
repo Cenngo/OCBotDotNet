@@ -12,18 +12,16 @@ using Victoria.Enums;
 
 namespace DiscordNET.Modules
 {
-	public class MusicModule : ModuleBase<SocketCommandContext>
+	public class MusicModule : ModuleBase<ShardedCommandContext>
 	{
 		private readonly LavaNode _lavaNode;
 		private readonly MusicManager _musicManager;
-		private readonly InteractiveService _interactivity;
 		private static readonly IEnumerable<int> Range = Enumerable.Range(1900, 2000);
 
-		public MusicModule ( LavaNode lavaNode, MusicManager musicManager, InteractiveService interactivity )
+		public MusicModule ( LavaNode lavaNode, MusicManager musicManager)
 		{
 			_musicManager = musicManager;
 			_lavaNode = lavaNode;
-			_interactivity = interactivity;
 		}
 
 		[Command("Join")]
@@ -140,9 +138,8 @@ namespace DiscordNET.Modules
 
 					var searchMessage = await Context.Channel.SendMessageAsync(embed: tracksEmbed);
 
-					var interactivity = new InteractiveService(Context.Client);
-
-					var response = await _interactivity.WaitForMessage(Context.User, Context.Channel, TimeSpan.FromMinutes(1));
+					var interactivity = new InteractiveService(Context.Client.GetShardFor(Context.Guild));
+					var response = await interactivity.WaitForMessage(Context.User, Context.Channel, TimeSpan.FromMinutes(1));
 
 					if (int.TryParse(response.Content, out int index))
 					{
@@ -223,8 +220,26 @@ namespace DiscordNET.Modules
 
 			if (player.PlayerState != Victoria.Enums.PlayerState.Paused && player.PlayerState != Victoria.Enums.PlayerState.Stopped)
 			{
-				await Context.Channel.SendMessageAsync("Nothing is paused rigth now");
-				return;
+				if(await _musicManager.Queue.GetQueueCount() != 0)
+				{
+					var list = await _musicManager.Queue.GetItems();
+
+					var trackCollection = list.FirstOrDefault();
+
+					var result = await _musicManager.Queue.TryDequeue(trackCollection.Track);
+
+					if (result)
+					{
+						await player.PlayAsync(trackCollection.Track);
+						await _musicManager.MusicEmbed(trackCollection);
+					}
+					return;
+				}
+				else
+				{
+					await ReplyAsync("Nothing is paused rigth now");
+					return;
+				}
 			}
 
 			await player.ResumeAsync();
@@ -300,7 +315,7 @@ namespace DiscordNET.Modules
 		public async Task Dispose ()
 		{
 			var player = _lavaNode.GetPlayer(Context.Guild);
-			await player.DisposeAsync();
+			await player.StopAsync();
 			await _musicManager.Queue.Dispose();
 		}
 

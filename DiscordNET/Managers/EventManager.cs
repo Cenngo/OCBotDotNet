@@ -1,52 +1,83 @@
 ﻿using Discord;
+using Discord.Commands;
 using Discord.WebSocket;
+using DiscordNET.Data;
+using LiteDB;
+using System;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace DiscordNET.Managers
 {
 	public sealed class EventManager
 	{
-		private readonly DiscordSocketClient _client;
+		private readonly DiscordShardedClient _client;
+		private readonly LiteDatabase _botDB;
+		private readonly LiteCollection<GuildConfig> _guildConfig;
 
-		public EventManager ( DiscordSocketClient client )
+		public EventManager ( DiscordShardedClient client )
 		{
 			_client = client;
+			_botDB = new LiteDatabase(@"BotData.db");
+			_guildConfig = _botDB.GetCollection<GuildConfig>("GuildConfigs");
 
 			_client.Log += OnLog;
-			_client.Ready += OnReady;
-			_client.JoinedGuild += OnJoinedGuild;
+			_client.ShardReady += OnReady;
+			_client.UserJoined += OnJoinedGuild;
 			_client.UserIsTyping += OnUserTyping;
+		}
+
+		private async Task OnJoinedGuild ( SocketGuildUser arg )
+		{
+			SocketGuild guild = arg.Guild;
+
+			Embed welcomeEmbed = new EmbedBuilder
+			{
+				Author = new EmbedAuthorBuilder
+				{
+					Name = guild.CurrentUser.Username,
+					IconUrl = guild.CurrentUser.GetAvatarUrl()
+				},
+				Title = $"Welcome to the {guild.Name}"
+			}.Build();
+			await guild.DefaultChannel.SendMessageAsync(embed: welcomeEmbed);
 		}
 
 		private async Task OnUserTyping ( SocketUser user, ISocketMessageChannel channel )
 		{
-			//await channel.SendMessageAsync($"Ne yazyıon tipini siktigim {user.Mention}");
-		}
+			var guild = (channel as SocketGuildChannel)?.Guild;
 
-		private async Task OnJoinedGuild ( SocketGuild arg )
-		{
-			var welcomeEmbed = new EmbedBuilder()
+			var currentConfig = _guildConfig.FindOne(x => x.GuildId == guild.Id);
+			var whitelist = currentConfig.WhiteList;
+
+			if (!currentConfig.Irritate || whitelist.Exists(x => x == string.Join(" ", user.Username, user.Discriminator)))
 			{
-				Title = $"Welcome to the {arg.Name} Server",
-				Color = Color.Orange,
-				Author = new EmbedAuthorBuilder
-				{
-					Name = $"{_client.CurrentUser.Username}",
-					IconUrl = _client.CurrentUser.GetAvatarUrl().ToString()
-				}
-			}.Build();
-
-			await arg.SystemChannel.SendMessageAsync(embed: welcomeEmbed);
+				return;
+			}
+			await channel.SendMessageAsync("Ne Yazıyon Lan Amkodum");
 		}
 
-		private Task OnReady ()
+		private Task OnReady (DiscordSocketClient arg)
 		{
 			return Task.CompletedTask;
 		}
 
-		private async Task OnLog ( LogMessage arg )
+		private Task OnLog ( LogMessage arg )
 		{
+			var argArray = arg.ToString().Split(" ");
+			var info = argArray[0] + " " + argArray[1] + " " + argArray[2];
+			string remainder = string.Empty;
 
+			for(int i = 3; i < argArray.Length; i++)
+			{
+				remainder += " " + argArray[i];
+			}
+			Console.ForegroundColor = ConsoleColor.Magenta;
+			Console.Write(info);
+			Console.ResetColor();
+			Console.Write(remainder + "\n");
+
+			return Task.CompletedTask;
 		}
 	}
 }

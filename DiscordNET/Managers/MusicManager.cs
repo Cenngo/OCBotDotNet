@@ -12,18 +12,47 @@ namespace DiscordNET.Managers
 {
 	public class MusicManager
 	{
-		private readonly DiscordSocketClient _client;
+		private readonly DiscordShardedClient _client;
 		private readonly LavaNode _lavaNode;
 		public QueueHandler Queue;
 
-		public MusicManager ( DiscordSocketClient client, LavaNode lavaNode, QueueHandler queue = null )
+		public MusicManager ( DiscordShardedClient client, LavaNode lavaNode, QueueHandler queue = null )
 		{
 			_client = client;
 			_lavaNode = lavaNode;
 			Queue = queue ?? new QueueHandler(_lavaNode, _client);
 
-			_client.Ready += OnReady;
+			_client.ShardReady += OnReady;
 			_lavaNode.OnTrackEnded += OnTrackEnded;
+			_lavaNode.OnTrackStuck += OnTrackStuck;
+			_lavaNode.OnLog += LavaNode_OnLog;
+		}
+
+		private Task LavaNode_OnLog ( LogMessage arg )
+		{
+			var argArray = arg.ToString().Split(" ");
+			var info = argArray[0] + " " + argArray[1] + " " + argArray[2];
+			string remainder = string.Empty;
+
+			for (int i = 3; i < argArray.Length; i++)
+			{
+				remainder += " " + argArray[i];
+			}
+			Console.ForegroundColor = ConsoleColor.Yellow;
+			Console.Write(info);
+			Console.ResetColor();
+			Console.Write(remainder + "\n");
+
+			return Task.CompletedTask;
+		}
+
+		private Task OnTrackStuck ( TrackStuckEventArgs arg )
+		{
+			LavaPlayer player = arg.Player;
+			player.StopAsync();
+			player.TextChannel.SendMessageAsync("Encountered a problem while playing");
+
+			return Task.CompletedTask;
 		}
 
 		private async Task OnTrackEnded ( TrackEndedEventArgs arg )
@@ -47,7 +76,7 @@ namespace DiscordNET.Managers
 			}
 		}
 
-		private async Task OnReady ()
+		private async Task OnReady (DiscordSocketClient arg)
 		{
 			await _lavaNode.ConnectAsync();
 		}
@@ -77,7 +106,7 @@ namespace DiscordNET.Managers
 			await trackCollection.Channel.SendMessageAsync(embed: msg);
 		}
 
-		public async Task MusicEmbed ( LavaTrack track, SocketCommandContext context )
+		public async Task MusicEmbed ( LavaTrack track, ShardedCommandContext context )
 		{
 			var videoId = track.Url.ToString().Substring(track.Url.ToString().Length - 11);
 			var thumbnailUrl = $"https://i.ytimg.com/vi/{videoId}/hqdefault.jpg";
@@ -128,7 +157,7 @@ namespace DiscordNET.Managers
 			await trackCollection.Channel.SendMessageAsync(embed: msg);
 		}
 
-		public async Task QueueEmbed ( LavaTrack track, SocketCommandContext context )
+		public async Task QueueEmbed ( LavaTrack track, ShardedCommandContext context )
 		{
 			var videoId = track.Url.ToString().Substring(track.Url.ToString().Length - 11);
 			var thumbnailUrl = $"https://i.ytimg.com/vi/{videoId}/hqdefault.jpg";
@@ -156,7 +185,7 @@ namespace DiscordNET.Managers
 			await context.Channel.SendMessageAsync(embed: msg);
 		}
 
-		public async Task PlaylistEmbed ( string query, SocketCommandContext context )
+		public async Task PlaylistEmbed ( string query, ShardedCommandContext context )
 		{
 			var results = await _lavaNode.SearchAsync(query);
 

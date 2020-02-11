@@ -1,4 +1,6 @@
-﻿namespace DiscordNET
+﻿using LiteDB;
+
+namespace DiscordNET
 {
 	class Program
 	{
