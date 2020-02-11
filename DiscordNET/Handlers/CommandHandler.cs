@@ -18,7 +18,7 @@ namespace DiscordNET.Handlers
 		private readonly DiscordSocketClient _client;
 		private readonly IServiceProvider _services;
 		private readonly LiteDatabase _database;
-		private readonly ILiteCollection<GuildConfig> _guildConfig;
+		private readonly LiteCollection<GuildConfig> _guildConfig;
 
 		public CommandHandler ( DiscordSocketClient client, CommandService commands, IServiceProvider services )
 		{

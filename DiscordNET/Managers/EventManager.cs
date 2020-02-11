@@ -12,7 +12,7 @@ namespace DiscordNET.Managers
 	{
 		private readonly DiscordShardedClient _client;
 		private readonly LiteDatabase _botDB;
-		private readonly ILiteCollection<GuildConfig> _guildConfig;
+		private readonly LiteCollection<GuildConfig> _guildConfig;
 
 		public EventManager ( DiscordSocketClient client )
 		{

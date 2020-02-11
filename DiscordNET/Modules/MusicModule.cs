@@ -26,12 +26,22 @@ namespace DiscordNET.Modules
 		}
 
 		[Command("Join")]
-		public async Task JoinAsync ()
+		[Summary("Create a music player instance and summon it to your current voice channel")]
+		public async Task Join ()
+		{
+			await JoinAsync();
+		}
+
+		private async Task<bool> JoinAsync ()
 		{
 			if (_lavaNode.HasPlayer(Context.Guild))
 			{
-				await ReplyAsync("I'm already connected to a voice channel!");
-				return;
+				await ReplyAsync(embed: new EmbedBuilder
+				{
+					Description = "I'm already connected to a voice channel",
+					Fields = new List<EmbedFieldBuilder> { new EmbedFieldBuilder { IsInline = true, Name = "Hint", Value = "To change the voice channel, use the `MOVE` command." } }
+				}.Build());
+				return false;
 			}
 
 			var voiceState = Context.User as IVoiceState;
@@ -39,21 +49,24 @@ namespace DiscordNET.Modules
 			if (voiceState?.VoiceChannel == null)
 			{
 				await ReplyAsync("You must be connected to a voice channel!");
-				return;
+				return false;
 			}
 
 			try
 			{
 				await _lavaNode.JoinAsync(voiceState.VoiceChannel, Context.Channel as ITextChannel);
 				await ReplyAsync($"Joined {voiceState.VoiceChannel.Name}!");
+				return true;
 			}
 			catch (Exception exception)
 			{
 				await ReplyAsync(exception.Message);
+				return false;
 			}
 		}
 
 		[Command("Leave")]
+		[Summary("Make the bot leave its current voice channel, consequently stopping the currently playing track")]
 		public async Task LeaveAsync ()
 		{
 			if (!_lavaNode.TryGetPlayer (Context.Guild, out var player))
@@ -80,9 +93,29 @@ namespace DiscordNET.Modules
 			}
 		}
 
-		[Command("play")]
-		public async Task Play ([Remainder] string  query)
+		[Command("move")]
+		[Summary("Use to move the active instance of the bot to a different voice channel")]
+		public async Task Move()
 		{
+			var voiceState = Context.User as IVoiceState;
+			if(voiceState?.VoiceChannel == null)
+			{
+				await ReplyAsync("You must be connected to a voice channel!");
+				return;
+			}
+			await _lavaNode.MoveChannelAsync(voiceState.VoiceChannel);
+		}
+
+		[Command("play")]
+		[Summary("Play music from a search query, youtube track link or queue a youtube playlist using URL links")]
+		public async Task Play ([Summary("Youtube search query")][Remainder] string  query)
+		{
+			var voiceState = Context.User as IVoiceState;
+			if (!_lavaNode.TryGetPlayer(Context.Guild, out var _player) || _player.VoiceChannel != voiceState.VoiceChannel)
+			{
+				if (!await JoinAsync()) return;
+			}
+   
 			var results = await _lavaNode.SearchAsync(query);
 			var player = _lavaNode.GetPlayer(Context.Guild);
 
@@ -134,13 +167,23 @@ namespace DiscordNET.Modules
 					{
 						Title = "Please Select the Desired Track",
 						Description = string.Join("\n", choice),
-						Color = Color.DarkPurple
+						Color = Color.DarkPurple,
+						Footer = new EmbedFooterBuilder
+						{
+							Text = "Type `cancel` to Cancel the Query"
+						}
 					}.Build();
 
 					var searchMessage = await Context.Channel.SendMessageAsync(embed: tracksEmbed);
 
 					var interactivity = new InteractiveService(Context.Client.GetShardFor(Context.Guild));
 					var response = await interactivity.WaitForMessage(Context.User, Context.Channel, TimeSpan.FromMinutes(1));
+					if(response.Content.ToLower() == "cancel")
+					{
+						await Context.Channel.SendMessageAsync("Canceled the  Query");
+						await Context.Channel.DeleteMessageAsync(searchMessage);
+						return;
+					}
 
 					if (int.TryParse(response.Content, out int index))
 					{
@@ -152,6 +195,7 @@ namespace DiscordNET.Modules
 						}
 
 						selectedTrack = searchResponse.Tracks[index - 1];
+						await Context.Channel.DeleteMessageAsync(searchMessage);
 					}
 					else
 					{
@@ -164,28 +208,30 @@ namespace DiscordNET.Modules
 					break;
 			}
 
-			if (player.PlayerState == Victoria.Enums.PlayerState.Playing || player.PlayerState == Victoria.Enums.PlayerState.Paused)
+			if (player.PlayerState == PlayerState.Playing || player.PlayerState == PlayerState.Paused)
 			{
 				await _musicManager.Queue.Enqueue(selectedTrack, Context);
 
 				await _musicManager.QueueEmbed(selectedTrack, Context);
-
-				return;
 			}
 			else
 			{
 				await _musicManager.MusicEmbed(selectedTrack, Context);
 				await _lavaNode.GetPlayer(Context.Guild).PlayAsync(selectedTrack);
-				return;
 			}
 		}
 
 		[Command("pause")]
+		[Summary("Pause the currently playing song to be resumed later")]
 		public async Task Pause ()
 		{
-			var player = _lavaNode.GetPlayer(Context.Guild);
+			if(!_lavaNode.TryGetPlayer(Context.Guild, out var player))
+			{
+				await ReplyAsync("No active music player found!");
+				return;
+			}
 
-			if (player.PlayerState != Victoria.Enums.PlayerState.Playing)
+			if (player.PlayerState != PlayerState.Playing)
 			{
 				await Context.Channel.SendMessageAsync("Nothing is playing.");
 				return;
@@ -195,9 +241,20 @@ namespace DiscordNET.Modules
 		}
 
 		[Command("skip")]
-		public async Task Skip ( int count = 1 )
+		[Summary("Skip the  desired number of tracks from the queue")]
+		public async Task Skip ( [Summary("Number of tracks to be skipped")]int count = 1 )
 		{
-			var player = _lavaNode.GetPlayer(Context.Guild);
+			if(!_lavaNode.TryGetPlayer(Context.Guild, out var player))
+			{
+				await ReplyAsync("No active music player found!");
+				return;
+			}
+
+			if(count < 0)
+			{
+				await ReplyAsync("Please enter a valid value");
+				return;
+			}
 
 			if (count > await _musicManager.Queue.GetQueueCount())
 			{
@@ -215,11 +272,16 @@ namespace DiscordNET.Modules
 		}
 
 		[Command("resume")]
+		[Summary("Resume the paused track")]
 		public async Task Resume ()
 		{
-			var player = _lavaNode.GetPlayer(Context.Guild);
+			if (!_lavaNode.TryGetPlayer(Context.Guild, out var player))
+			{
+				await ReplyAsync("No active music player found!");
+				return;
+			}
 
-			if (player.PlayerState != Victoria.Enums.PlayerState.Paused && player.PlayerState != Victoria.Enums.PlayerState.Stopped)
+			if (player.PlayerState != PlayerState.Paused && player.PlayerState != PlayerState.Stopped)
 			{
 				if(await _musicManager.Queue.GetQueueCount() != 0)
 				{
@@ -247,9 +309,14 @@ namespace DiscordNET.Modules
 		}
 
 		[Command("volume")]
-		public async Task Volume ( ushort? volume )
+		[Summary("Set the volume of the music player or get the current volume value")]
+		public async Task Volume ( [Summary("Value to be set as the volume gain(Leave blank to get the current value)")]ushort? volume = null )
 		{
-			var player = _lavaNode.GetPlayer(Context.Guild);
+			if(!_lavaNode.TryGetPlayer(Context.Guild, out var player))
+			{
+				await ReplyAsync("There is currently no active player in this server!");
+				return;
+			}
 			if (volume > 100 || volume < 0)
 			{
 				await Context.Channel.SendMessageAsync("Volume setting must be between 100 and 0");
@@ -258,19 +325,26 @@ namespace DiscordNET.Modules
 
 			if (volume == null)
 			{
-				await Context.Channel.SendMessageAsync($":speaker: **Current Volume Setting:** {player.Volume}");
+				var currentVolume = player?.Volume;
+				await Context.Channel.SendMessageAsync($":speaker: **Current Volume Setting:** {currentVolume}");
 				return;
 			}
 
 			await player.UpdateVolumeAsync(Convert.ToUInt16(volume));
+			await ReplyAsync($":speaker: **Volume Set To:** {volume}");
 		}
 
 		[Command("Stop")]
+		[Summary("Stop music playback for the current track")]
 		public async Task Stop ()
 		{
-			var player = _lavaNode.GetPlayer(Context.Guild);
+			if (!_lavaNode.TryGetPlayer(Context.Guild, out var player))
+			{
+				await ReplyAsync("No active music player found!");
+				return;
+			}
 
-			if (player.PlayerState != Victoria.Enums.PlayerState.Playing)
+			if (player.PlayerState != PlayerState.Playing)
 			{
 				await Context.Channel.SendMessageAsync("Nothing is Playing");
 				return;
@@ -281,9 +355,14 @@ namespace DiscordNET.Modules
 
 		[Command("fastforward")]
 		[Alias("forward")]
-		public async Task FastForward ( TimeSpan time )
+		[Summary("Fast forward the current track a desired amount of time")]
+		public async Task FastForward ( [Summary("Format: `xx`H`xx`M`xx`S")]TimeSpan time )
 		{
-			var player = _lavaNode.GetPlayer(Context.Guild);
+			if (!_lavaNode.TryGetPlayer(Context.Guild, out var player))
+			{
+				await ReplyAsync("No active music player found!");
+				return;
+			}
 			var currentTrack = player.Track;
 
 			if (currentTrack.Position + time > currentTrack.Duration)
@@ -297,9 +376,14 @@ namespace DiscordNET.Modules
 
 		[Command("rewind")]
 		[Alias("back")]
-		public async Task Rewind ( TimeSpan time )
+		[Summary("Rewind the current track a desired amount of time")]
+		public async Task Rewind ( [Summary("Format: `xx`H`xx`M`xx`S")]TimeSpan time )
 		{
-			var player = _lavaNode.GetPlayer(Context.Guild);
+			if (!_lavaNode.TryGetPlayer(Context.Guild, out var player))
+			{
+				await ReplyAsync("No active music player found!");
+				return;
+			}
 			var currentTrack = player.Track;
 
 			if (currentTrack.Position - time < TimeSpan.Zero)
@@ -313,14 +397,20 @@ namespace DiscordNET.Modules
 
 		[Command("dispose")]
 		[Alias("clear")]
+		[Summary("Stop the  music playback and clear the queue")]
 		public async Task Dispose ()
 		{
-			var player = _lavaNode.GetPlayer(Context.Guild);
+			if (!_lavaNode.TryGetPlayer(Context.Guild, out var player))
+			{
+				await ReplyAsync("No active music player found!");
+				return;
+			}
 			await player.StopAsync();
 			await _musicManager.Queue.Dispose();
 		}
 
-		[Command("lyrics")]
+		[Command("genius")]
+		[Summary("Get the lyrics for the currently playing  song from genius")]
 		public async Task Lyrics ()
 		{
 			if(!_lavaNode.TryGetPlayer(Context.Guild, out var player)) {
@@ -359,7 +449,8 @@ namespace DiscordNET.Modules
 			await ReplyAsync($"```{stringBuilder}```");
 		}
 
-		[Command("lyrics alt")]
+		[Command("lyrics")]
+		[Summary("Get the lyrics for the currently playing song from alternate source")]
 		public async Task Lyrics2 ()
 		{
 			if (!_lavaNode.TryGetPlayer(Context.Guild, out var player))
@@ -399,11 +490,16 @@ namespace DiscordNET.Modules
 			await ReplyAsync($"```{stringBuilder}```");
 		}
 
-	[Command("now playing")]
+		[Command("now playing")]
 		[Alias("now")]
+		[Summary("Get the info card for the currently playing song")]
 		public async Task NowPlaying()
 		{
-			var player = _lavaNode.GetPlayer(Context.Guild);
+			if (!_lavaNode.TryGetPlayer(Context.Guild, out var player))
+			{
+				await ReplyAsync("No active music player found!");
+				return;
+			}
 
 			if (player.PlayerState != PlayerState.Playing)
 			{
@@ -416,6 +512,7 @@ namespace DiscordNET.Modules
 		}
 
 		[Command("queue")]
+		[Summary("Get a listing of the queue")]
 		public async Task Queue()
 		{
 			var queue = _musicManager.Queue;
