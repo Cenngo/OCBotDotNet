@@ -8,6 +8,7 @@ using LiteDB;
 using Newtonsoft.Json;
 using System;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace DiscordNET
@@ -33,7 +34,7 @@ namespace DiscordNET
 			_client = new DiscordShardedClient(new DiscordSocketConfig
 			{
 				LogLevel = LogSeverity.Debug,
-				TotalShards = 2
+				TotalShards = 5
 			});
 
 			await _client.StartAsync();
