@@ -11,16 +11,16 @@ namespace DiscordNET.Handlers
 	{
 		private List<QueueTrack> _queue { get; }
 		private readonly LavaNode _node;
-		private readonly DiscordShardedClient _client;
+		private readonly DiscordSocketClient _client;
 
-		public QueueHandler ( LavaNode node, DiscordShardedClient client )
+		public QueueHandler ( LavaNode node, DiscordSocketClient client )
 		{
 			_client = client;
 			_node = node;
 			_queue = new List<QueueTrack>();
 		}
 
-		public async Task Enqueue ( LavaTrack track, ShardedCommandContext context )
+		public async Task Enqueue ( LavaTrack track, SocketCommandContext context )
 		{
 			var queueItem = new QueueTrack
 			{

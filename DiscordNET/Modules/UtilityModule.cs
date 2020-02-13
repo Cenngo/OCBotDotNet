@@ -4,6 +4,7 @@ using DiscordNET.Data;
 using LiteDB;
 using Newtonsoft.Json;
 using Raven.Client.Documents.Smuggler;
+using Raven.Client.Exceptions.Database;
 using Raven.Client.Json.Converters;
 using System;
 using System.Collections.Generic;
@@ -38,10 +39,11 @@ namespace DiscordNET.Modules
 				return;
 			}
 
-			var messages = Context.Channel.GetMessagesAsync(count);
+			var messages = Context.Channel.GetMessagesAsync(count).ToList();
+			var channel = Context.Channel as SocketTextChannel;
 
 			//FIX BUG: No Method found for bulk deletion
-			//await Context.Channel.DeleteMessagesAsync(messages);
+			//await channel.DeleteMessagesAsync(messages);
 		}
 
 		[Command("dice")]
@@ -52,37 +54,6 @@ namespace DiscordNET.Modules
 			var random = new Random(Convert.ToInt32(DateTime.UnixEpoch));
 
 			await Context.Channel.SendMessageAsync(random.Next().ToString());
-		}
-		[Command("insult")]
-		public async Task InsultMention()
-		{
-		//	//Feature: insult multiple users
-		//	if (Context.Message.MentionedUsers.Count > 1)
-		//		throw new InvalidOperationException("You should mention only one user");
-
-		//	UserCollection userData = JsonConvert.DeserializeObject<UserCollection>(File.ReadAllText("users.json"));
-
-		//	IReadOnlyCollection<SocketUser> mentioned = Context.Message.MentionedUsers;
-
-		//	var insults = JsonConvert.DeserializeObject<InsultCollection>(File.ReadAllText("insults.json"));
-
-		//	var InsultLanguage = new Dictionary<string, List<String>>
-		//	{
-		//		{"tr", insults.TR_insults},
-		//		{"en", insults.EN_insults }
-		//	};
-
-		//	foreach (SocketUser user in mentioned)
-		//	{
-		//		var userMatch = userData.userList.FirstOrDefault(x => x.discordID == user.Id);
-		//		var randomN = new Random();
-
-		//		string userLang = userMatch.langauge;
-		//		List<string> listOfInsults = InsultLanguage[userLang];
-		//		string anan = InsultLanguage[userMatch.langauge.ToLower()][randomN.Next(0, insults.TR_insults.Count)];
-		//		await ReplyAsync(anan+" "+user.Mention);
-		//	}
-		//	await Context.Message.DeleteAsync();
 		}
 
 		[Command("list prefix")]

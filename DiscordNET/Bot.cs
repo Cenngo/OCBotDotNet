@@ -8,6 +8,7 @@ using LiteDB;
 using Newtonsoft.Json;
 using System;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace DiscordNET
@@ -18,6 +19,8 @@ namespace DiscordNET
 		public DiscordShardedClient _client { get; private set; }
 		public async Task MainAsync ()
 		{
+			Console.SetWindowSize(160, 25);
+			Console.Title = "Discord Bot";
 			//jsonConfig = JsonConvert.DeserializeObject<Config>(File.ReadAllText("config.json"));
 			//Set environment variable: DCBOTTOKEN with your Discord bot API token @
 			//https://discordapp.com/developers/applications/
@@ -33,10 +36,8 @@ namespace DiscordNET
 			_client = new DiscordShardedClient(new DiscordSocketConfig
 			{
 				LogLevel = LogSeverity.Debug,
-				TotalShards = 2
+				TotalShards = 5
 			});
-
-			await _client.SetGameAsync(">help", type: ActivityType.Playing);
 
 			await _client.StartAsync();
 			await _client.LoginAsync(TokenType.Bot, botToken, true);

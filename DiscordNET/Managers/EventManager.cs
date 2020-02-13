@@ -4,7 +4,6 @@ using Discord.WebSocket;
 using DiscordNET.Data;
 using LiteDB;
 using System;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace DiscordNET.Managers

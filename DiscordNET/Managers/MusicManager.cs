@@ -12,17 +12,17 @@ namespace DiscordNET.Managers
 {
 	public class MusicManager
 	{
-		private readonly DiscordShardedClient _client;
+		private readonly DiscordSocketClient _client;
 		private readonly LavaNode _lavaNode;
 		public QueueHandler Queue;
 
-		public MusicManager ( DiscordShardedClient client, LavaNode lavaNode, QueueHandler queue = null )
+		public MusicManager ( DiscordSocketClient client, LavaNode lavaNode, QueueHandler queue = null )
 		{
 			_client = client;
 			_lavaNode = lavaNode;
 			Queue = queue ?? new QueueHandler(_lavaNode, _client);
 
-			_client.ShardReady += OnReady;
+			_client.Ready += OnReady;
 			_lavaNode.OnTrackEnded += OnTrackEnded;
 			_lavaNode.OnTrackStuck += OnTrackStuck;
 			_lavaNode.OnLog += LavaNode_OnLog;
@@ -76,7 +76,7 @@ namespace DiscordNET.Managers
 			}
 		}
 
-		private async Task OnReady (DiscordSocketClient arg)
+		private async Task OnReady ()
 		{
 			await _lavaNode.ConnectAsync();
 		}
@@ -106,7 +106,7 @@ namespace DiscordNET.Managers
 			await trackCollection.Channel.SendMessageAsync(embed: msg);
 		}
 
-		public async Task MusicEmbed ( LavaTrack track, ShardedCommandContext context )
+		public async Task MusicEmbed ( LavaTrack track, SocketCommandContext context )
 		{
 			var videoId = track.Url.ToString().Substring(track.Url.ToString().Length - 11);
 			var thumbnailUrl = $"https://i.ytimg.com/vi/{videoId}/hqdefault.jpg";
@@ -157,7 +157,7 @@ namespace DiscordNET.Managers
 			await trackCollection.Channel.SendMessageAsync(embed: msg);
 		}
 
-		public async Task QueueEmbed ( LavaTrack track, ShardedCommandContext context )
+		public async Task QueueEmbed ( LavaTrack track, SocketCommandContext context )
 		{
 			var videoId = track.Url.ToString().Substring(track.Url.ToString().Length - 11);
 			var thumbnailUrl = $"https://i.ytimg.com/vi/{videoId}/hqdefault.jpg";
@@ -185,7 +185,7 @@ namespace DiscordNET.Managers
 			await context.Channel.SendMessageAsync(embed: msg);
 		}
 
-		public async Task PlaylistEmbed ( string query, ShardedCommandContext context )
+		public async Task PlaylistEmbed ( string query, SocketCommandContext context )
 		{
 			var results = await _lavaNode.SearchAsync(query);
 
