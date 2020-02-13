@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace DiscordNET.Modules
 {
     [Group("OW")]
-    public class OWCommands : ModuleBase<SocketCommandContext>
+    public class OWCommands : ModuleBase<ShardedCommandContext>
     {
         [Command("profile")]
         public async Task GetOwProfile(string battleTag, string platform = "pc", string region = "eu")

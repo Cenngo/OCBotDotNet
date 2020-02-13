@@ -31,6 +31,7 @@ namespace DiscordNET.Managers
 			.AddSingleton(_botDB)
 			.AddSingleton(_guildConfig)
 			.AddSingleton<CommandHandler>()
+			.AddSingleton<InteractiveService>()
 			.AddSingleton<LavaConfig>()
 			.AddSingleton<LavaNode>()
 			.AddSingleton<MusicManager>()
