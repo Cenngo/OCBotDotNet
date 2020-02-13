@@ -18,7 +18,6 @@ namespace DiscordNET.Modules
             {
                 var OW = new Overwatch();
                 var stats = await OW.RetrieveUserStats(battleTag, region, platform);
-                bool priv = stats.priv;
              
                 if (!stats.priv){
                     Dictionary<string, OwHero> comp = stats.CompStats.allHeroes;
@@ -68,42 +67,45 @@ namespace DiscordNET.Modules
                 var OW = new Overwatch();
                 var stats = await OW.RetrieveUserStats(battleTag, region, platform);
                 List<OWRole> roles = stats.OW_RoleList;
-                if (roles == null){
-                    await ReplyAsync("No roles placed...");
+                if (stats.priv){
+                    await ReplyAsync(stats.name + "'s Profile is private...");
+                    return; 
+                }
+
+                else if (roles == null){
+                    await ReplyAsync(stats.name + " has no roles placed...");
                     return;
                 }
 
-                await ReplyAsync("Displaying ranks for " + stats.name);
+                else{
+                    await ReplyAsync("Displaying ranks for " + stats.name + "...");
 
-                foreach (OWRole r in roles){
-                    var roleName = r.role;
-                    var roleLevel = r.skillRating;
-                    var roleIcon = r.roleIcon;
-                    var rankIcon = r.rankIcon;
-                    var rank = r.rankIcon.Substring(59);
-                    rank = rank.Remove(rank.IndexOf(".")).ToLower();
-                    
-                    var RankColorPair = new Dictionary<string, Color>()
-                    {
-                        {"bronzetier", new Color(0x964B00)},
-                        {"silvertier", new Color(0x808080)},
-                        {"goldtier", new Color(0xffd700)},
-                        {"platinumtier", new Color(0xe5e4e2)},
-                        {"diamondtier", Color.Teal },
-                        {"mastertier", new Color(0xfed8b1)},
-                        {"grandmastertier", new Color(0xffff00) }
-                    };
+                    foreach (OWRole r in roles){
+                        var rank = r.rankIcon.Substring(59);
+                        rank = rank.Remove(rank.IndexOf(".")).ToLower();
+                        
+                        var RankColorPair = new Dictionary<string, Color>()
+                        {
+                            {"bronzetier", new Color(0x964B00)},
+                            {"silvertier", new Color(0x808080)},
+                            {"goldtier", new Color(0xffd700)},
+                            {"platinumtier", new Color(0xe5e4e2)},
+                            {"diamondtier", Color.Teal },
+                            {"mastertier", new Color(0xfed8b1)},
+                            {"grandmastertier", new Color(0xffff00) }
+                        };
 
-                    var rankColor = RankColorPair[rank];
-                    var infoEmbed = new EmbedBuilder()
-                    {
-                        Title = r.role,
-                        Color = rankColor,
-                        ThumbnailUrl = r.rankIcon,
-                        Description = r.skillRating.ToString()
+                        var rankColor = RankColorPair[rank];
+                        var infoEmbed = new EmbedBuilder()
+                        {
+                            Title = r.role,
+                            Color = rankColor,
+                            ThumbnailUrl = r.rankIcon,
+                            Description = r.skillRating.ToString()
+                        }
+                        .Build();
+                        await ReplyAsync(embed: infoEmbed);
                     }
-                    .Build();
-                    await ReplyAsync(embed: infoEmbed);
                 }
             }
             catch (Exception e)
