@@ -43,7 +43,7 @@ namespace DiscordNET.Modules
 			var channel = Context.Channel as SocketTextChannel;
 
 			//FIX BUG: No Method found for bulk deletion
-			await channel.DeleteMessagesAsync(messages);
+			//await channel.DeleteMessagesAsync(messages);
 		}
 
 		[Command("dice")]

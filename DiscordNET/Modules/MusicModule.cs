@@ -1,5 +1,4 @@
 ﻿using Discord;
-using Discord.Addons.InteractiveCommands;
 using Discord.Commands;
 using DiscordNET.Managers;
 using System;
@@ -9,6 +8,10 @@ using System.Text;
 using System.Threading.Tasks;
 using Victoria;
 using Victoria.Enums;
+using DiscordNET.Extensions;
+using System.Text.RegularExpressions;
+using Discord.Addons.Interactive;
+using Discord.Rest;
 
 namespace DiscordNET.Modules
 {
@@ -176,7 +179,7 @@ namespace DiscordNET.Modules
 					var searchMessage = await Context.Channel.SendMessageAsync(embed: tracksEmbed);
 
 					var interactivity = new InteractiveService(Context.Client.GetShardFor(Context.Guild));
-					var response = await interactivity.WaitForMessage(Context.User, Context.Channel, TimeSpan.FromMinutes(1));
+					var response = await interactivity.NextMessageAsync(Context, true, true, TimeSpan.FromMinutes(1));
 					if (response.Content.ToLower() == "cancel")
 					{
 						await Context.Channel.SendMessageAsync("Canceled the  Query");
@@ -408,86 +411,52 @@ namespace DiscordNET.Modules
 			await _musicManager.Queue.Dispose();
 		}
 
-		[Command("genius")]
-		[Summary("Get the lyrics for the currently playing  song from genius")]
+		[Command("lyrics")]
+		[Summary("Get the lyrics for the currently playing  song from Genius")]
 		public async Task Lyrics ()
 		{
-			if (!_lavaNode.TryGetPlayer(Context.Guild, out var player))
+			if (!_lavaNode.TryGetPlayer(Context.Guild, out var player)) return;
+			
+			var track = player.Track;
+			var query = track.Title;
+			var lyrics = await track.GeniusLyrics();
+
+			if (lyrics == null)
 			{
-				await ReplyAsync("I'm not connected to a voice channel.");
+				await ReplyAsync($"No lyrics were found for {query}");
 				return;
 			}
 
-			if (player.PlayerState != PlayerState.Playing)
-			{
-				await ReplyAsync("Woaaah there, I'm not playing any tracks.");
-				return;
-			}
+			lyrics = Regex.Replace(lyrics, @"\[.*?\]", "**$&**");
 
-			var lyrics = await player.Track.FetchLyricsFromGeniusAsync();
-			if (string.IsNullOrWhiteSpace(lyrics))
-			{
-				await ReplyAsync($"No lyrics found for {player.Track.Title}");
-				return;
-			}
+			var result = track.SearchGenius().Response.Hits.First().Result;
 
-			var splitLyrics = lyrics.Split('\n');
-			var stringBuilder = new StringBuilder();
-			foreach (var line in splitLyrics)
+			if (lyrics.Length > 2048)
 			{
-				if (Range.Contains(stringBuilder.Length))
+				var pages = Enumerable.Range(0, lyrics.Length / 2048).Select(i => lyrics.Substring(i * 2048, 2048));
+
+				var interactivity = new InteractiveService(Context.Client.GetShardFor(Context.Guild));
+				await interactivity.SendPaginatedMessageAsync(Context, new PaginatedMessage
 				{
-					await ReplyAsync($"```{stringBuilder}```");
-					stringBuilder.Clear();
-				}
-				else
-				{
-					stringBuilder.AppendLine(line);
-				}
+					Title = result.FullTitle.ToUpper(),
+					Color = Color.DarkPurple,
+					Pages = pages.ToList()
+				});
 			}
 
-			await ReplyAsync($"```{stringBuilder}```");
-		}
+			lyrics += "\n\n *For the rest of the lyrics, click the title*";
 
-		[Command("lyrics")]
-		[Summary("Get the lyrics for the currently playing song from alternate source")]
-		public async Task Lyrics2 ()
-		{
-			if (!_lavaNode.TryGetPlayer(Context.Guild, out var player))
+			var lyricsEmbed = new EmbedBuilder
 			{
-				await ReplyAsync("I'm not connected to a voice channel.");
-				return;
-			}
-
-			if (player.PlayerState != PlayerState.Playing)
-			{
-				await ReplyAsync("Woaaah there, I'm not playing any tracks.");
-				return;
-			}
-
-			var lyrics = await player.Track.FetchLyricsFromOVHAsync();
-			if (string.IsNullOrWhiteSpace(lyrics))
-			{
-				await ReplyAsync($"No lyrics found for {player.Track.Title}");
-				return;
-			}
-
-			var splitLyrics = lyrics.Split('\n');
-			var stringBuilder = new StringBuilder();
-			foreach (var line in splitLyrics)
-			{
-				if (Range.Contains(stringBuilder.Length))
-				{
-					await ReplyAsync($"```{stringBuilder}```");
-					stringBuilder.Clear();
-				}
-				else
-				{
-					stringBuilder.AppendLine(line);
-				}
-			}
-
-			await ReplyAsync($"```{stringBuilder}```");
+				Title = result.FullTitle.ToUpper(),
+				Description = lyrics,
+				Color = Color.DarkPurple,
+				ThumbnailUrl = result.HeadedImgUrl,
+				Url = result.URL
+			}.WithFooter("Lyrics Provided by Genius Inc.", "https://t2.genius.com/unsafe/220x220/https%3A%2F%2Fimages.genius.com%2F2a186f15f137ffa0d4b6bc3cd6034787.680x680x1.png")
+			.Build();
+			await ReplyAsync(embed: lyricsEmbed);
+			
 		}
 
 		[Command("now playing")]

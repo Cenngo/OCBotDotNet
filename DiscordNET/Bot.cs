@@ -19,6 +19,8 @@ namespace DiscordNET
 		public DiscordShardedClient _client { get; private set; }
 		public async Task MainAsync ()
 		{
+			Console.SetWindowSize(160, 25);
+			Console.Title = "Discord Bot";
 			//jsonConfig = JsonConvert.DeserializeObject<Config>(File.ReadAllText("config.json"));
 			//Set environment variable: DCBOTTOKEN with your Discord bot API token @
 			//https://discordapp.com/developers/applications/
