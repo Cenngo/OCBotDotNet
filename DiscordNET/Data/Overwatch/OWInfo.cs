@@ -5,6 +5,8 @@ namespace DiscordNET.Handlers
 {
     public struct OWInfo
     {
+        [JsonProperty("private")]
+        public bool priv { get; private set;}
         [JsonProperty("name")]
         public string name { get; private set; }
         [JsonProperty("icon")]
