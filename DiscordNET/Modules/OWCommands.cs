@@ -1,10 +1,12 @@
 ﻿using Discord;
 using Discord.Commands;
 using DiscordNET.Handlers;
+using DiscordNET.GeneralUtility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using DiscordNET.Extensions;
 
 namespace DiscordNET.Modules
 {
@@ -33,8 +35,9 @@ namespace DiscordNET.Modules
                     }                    
                     .AddField("Level", stats.prestige.ToString() + stats.level.ToString(), true)
                     .AddField("Endorsement", stats.endorsement, true)
-                    .AddField("Best Competitive Hero", bestComp.ToUpper(), false)
-                    .AddField("Best Quick-play Hero", bestQP.ToUpper(),false)
+                    .AddBlankField()
+                    .AddField("Best Competitive Hero", bestComp.CaptFirst(), false)
+                    .AddField("Best Quick-play Hero", bestQP.CaptFirst(),false)
                     .WithAuthor("Profile Summary")
                     .Build();
                     await ReplyAsync(embed: infoEmbed);
@@ -98,7 +101,7 @@ namespace DiscordNET.Modules
                         var rankColor = RankColorPair[rank];
                         var infoEmbed = new EmbedBuilder()
                         {
-                            Title = r.role,
+                            Title = r.role.CaptFirst(),
                             Color = rankColor,
                             ThumbnailUrl = r.rankIcon,
                             Description = r.skillRating.ToString()
