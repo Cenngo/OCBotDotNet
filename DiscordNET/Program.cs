@@ -1,4 +1,6 @@
 ﻿using LiteDB;
+using System;
+using System.Runtime.CompilerServices;
 
 namespace DiscordNET
 {

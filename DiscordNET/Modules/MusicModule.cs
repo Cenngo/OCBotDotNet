@@ -12,6 +12,10 @@ using DiscordNET.Extensions;
 using System.Text.RegularExpressions;
 using Discord.Addons.Interactive;
 using Discord.Rest;
+using Victoria.Responses.Rest;
+using DiscordNET.Handlers;
+using Discord.WebSocket;
+using DiscordNET.Data.Genius;
 
 namespace DiscordNET.Modules
 {
@@ -46,7 +50,7 @@ namespace DiscordNET.Modules
 				return false;
 			}
 
-			var voiceState = Context.User as IVoiceState;
+			IVoiceState voiceState = Context.User as IVoiceState;
 
 			if (voiceState?.VoiceChannel == null)
 			{
@@ -71,13 +75,13 @@ namespace DiscordNET.Modules
 		[Summary("Make the bot leave its current voice channel, consequently stopping the currently playing track")]
 		public async Task LeaveAsync ()
 		{
-			if (!_lavaNode.TryGetPlayer(Context.Guild, out var player))
+			if (!_lavaNode.TryGetPlayer(Context.Guild, out LavaPlayer player))
 			{
 				await ReplyAsync("I'm not connected to any voice channels!");
 				return;
 			}
 
-			var voiceChannel = (Context.User as IVoiceState).VoiceChannel ?? player.VoiceChannel;
+			IVoiceChannel voiceChannel = (Context.User as IVoiceState).VoiceChannel ?? player.VoiceChannel;
 			if (voiceChannel == null)
 			{
 				await ReplyAsync("Not sure which voice channel to disconnect from.");
@@ -99,7 +103,7 @@ namespace DiscordNET.Modules
 		[Summary("Use to move the active instance of the bot to a different voice channel")]
 		public async Task Move ()
 		{
-			var voiceState = Context.User as IVoiceState;
+			IVoiceState voiceState = Context.User as IVoiceState;
 			if (voiceState?.VoiceChannel == null)
 			{
 				await ReplyAsync("You must be connected to a voice channel!");
@@ -112,14 +116,14 @@ namespace DiscordNET.Modules
 		[Summary("Play music from a search query, youtube track link or queue a youtube playlist using URL links")]
 		public async Task Play ( [Summary("Youtube search query")][Remainder] string query )
 		{
-			var voiceState = Context.User as IVoiceState;
+			IVoiceState voiceState = Context.User as IVoiceState;
 			if (!_lavaNode.TryGetPlayer(Context.Guild, out var _player) || _player.VoiceChannel != voiceState.VoiceChannel)
 			{
 				if (!await JoinAsync()) return;
 			}
 
-			var results = await _lavaNode.SearchAsync(query);
-			var player = _lavaNode.GetPlayer(Context.Guild);
+			SearchResponse results = await _lavaNode.SearchAsync(query);
+			LavaPlayer player = _lavaNode.GetPlayer(Context.Guild);
 
 			LavaTrack selectedTrack = default(LavaTrack);
 
@@ -129,20 +133,20 @@ namespace DiscordNET.Modules
 					selectedTrack = results.Tracks[0];
 					break;
 				case LoadStatus.PlaylistLoaded:
-					foreach (var track in results.Tracks)
+					foreach (LavaTrack track in results.Tracks)
 					{
 						await _musicManager.Queue.Enqueue(track, Context);
 					}
 
 					await _musicManager.PlaylistEmbed(query, Context);
 
-					if (player.PlayerState != Victoria.Enums.PlayerState.Playing && player.PlayerState != Victoria.Enums.PlayerState.Paused)
+					if (player.PlayerState != PlayerState.Playing && player.PlayerState != PlayerState.Paused)
 					{
-						var list = await _musicManager.Queue.GetItems();
+						List<QueueTrack> list = await _musicManager.Queue.GetItems();
 
-						var trackCollection = list.FirstOrDefault();
+						QueueTrack trackCollection = list.FirstOrDefault();
 
-						var result = await _musicManager.Queue.TryDequeue(trackCollection.Track);
+						bool result = await _musicManager.Queue.TryDequeue(trackCollection.Track);
 
 						if (result)
 						{
@@ -156,16 +160,16 @@ namespace DiscordNET.Modules
 					break;
 				case LoadStatus.LoadFailed:
 				case LoadStatus.NoMatches:
-					var searchResponse = await _lavaNode.SearchYouTubeAsync(query);
-					var choice = new List<string>();
+					SearchResponse searchResponse = await _lavaNode.SearchYouTubeAsync(query);
+					List<string> choice = new List<string>();
 
 					for (int i = 1; i <= 5; i++)
 					{
-						var item = searchResponse.Tracks.ElementAt(i - 1);
+						LavaTrack item = searchResponse.Tracks.ElementAt(i - 1);
 						choice.Add($"{i}.\t{item.Title}...\t({item.Duration})");
 					}
 
-					var tracksEmbed = new EmbedBuilder()
+					Embed tracksEmbed = new EmbedBuilder()
 					{
 						Title = "Please Select the Desired Track",
 						Description = string.Join("\n", choice),
@@ -176,10 +180,10 @@ namespace DiscordNET.Modules
 						}
 					}.Build();
 
-					var searchMessage = await Context.Channel.SendMessageAsync(embed: tracksEmbed);
+					RestUserMessage searchMessage = await Context.Channel.SendMessageAsync(embed: tracksEmbed);
 
-					var interactivity = new InteractiveService(Context.Client.GetShardFor(Context.Guild));
-					var response = await interactivity.NextMessageAsync(Context, true, true, TimeSpan.FromMinutes(1));
+					InteractiveService interactivity = new InteractiveService(Context.Client.GetShardFor(Context.Guild));
+					SocketMessage response = await interactivity.NextMessageAsync(Context, true, true, TimeSpan.FromMinutes(1));
 					if (response.Content.ToLower() == "cancel")
 					{
 						await Context.Channel.SendMessageAsync("Canceled the  Query");
@@ -227,7 +231,7 @@ namespace DiscordNET.Modules
 		[Summary("Pause the currently playing song to be resumed later")]
 		public async Task Pause ()
 		{
-			if (!_lavaNode.TryGetPlayer(Context.Guild, out var player))
+			if (!_lavaNode.TryGetPlayer(Context.Guild, out LavaPlayer player))
 			{
 				await ReplyAsync("No active music player found!");
 				return;
@@ -246,7 +250,7 @@ namespace DiscordNET.Modules
 		[Summary("Skip the  desired number of tracks from the queue")]
 		public async Task Skip ( [Summary("Number of tracks to be skipped")]int count = 1 )
 		{
-			if (!_lavaNode.TryGetPlayer(Context.Guild, out var player))
+			if (!_lavaNode.TryGetPlayer(Context.Guild, out LavaPlayer player))
 			{
 				await ReplyAsync("No active music player found!");
 				return;
@@ -264,8 +268,8 @@ namespace DiscordNET.Modules
 				return;
 			}
 
-			var tracks = await _musicManager.Queue.GetItems();
-			var track = tracks.ElementAt(count - 1);
+			List<QueueTrack> tracks = await _musicManager.Queue.GetItems();
+			QueueTrack track = tracks.ElementAt(count - 1);
 
 			await _musicManager.Queue.Remove(count);
 
@@ -277,7 +281,7 @@ namespace DiscordNET.Modules
 		[Summary("Resume the paused track")]
 		public async Task Resume ()
 		{
-			if (!_lavaNode.TryGetPlayer(Context.Guild, out var player))
+			if (!_lavaNode.TryGetPlayer(Context.Guild, out LavaPlayer player))
 			{
 				await ReplyAsync("No active music player found!");
 				return;
@@ -287,11 +291,11 @@ namespace DiscordNET.Modules
 			{
 				if (await _musicManager.Queue.GetQueueCount() != 0)
 				{
-					var list = await _musicManager.Queue.GetItems();
+					List<QueueTrack> list = await _musicManager.Queue.GetItems();
 
-					var trackCollection = list.FirstOrDefault();
+					QueueTrack trackCollection = list.FirstOrDefault();
 
-					var result = await _musicManager.Queue.TryDequeue(trackCollection.Track);
+					bool result = await _musicManager.Queue.TryDequeue(trackCollection.Track);
 
 					if (result)
 					{
@@ -314,7 +318,7 @@ namespace DiscordNET.Modules
 		[Summary("Set the volume of the music player or get the current volume value")]
 		public async Task Volume ( [Summary("Value to be set as the volume gain(Leave blank to get the current value)")]ushort? volume = null )
 		{
-			if (!_lavaNode.TryGetPlayer(Context.Guild, out var player))
+			if (!_lavaNode.TryGetPlayer(Context.Guild, out LavaPlayer player))
 			{
 				await ReplyAsync("There is currently no active player in this server!");
 				return;
@@ -340,7 +344,7 @@ namespace DiscordNET.Modules
 		[Summary("Stop music playback for the current track")]
 		public async Task Stop ()
 		{
-			if (!_lavaNode.TryGetPlayer(Context.Guild, out var player))
+			if (!_lavaNode.TryGetPlayer(Context.Guild, out LavaPlayer player))
 			{
 				await ReplyAsync("No active music player found!");
 				return;
@@ -360,12 +364,12 @@ namespace DiscordNET.Modules
 		[Summary("Fast forward the current track a desired amount of time")]
 		public async Task FastForward ( [Summary("Format: `xx`H`xx`M`xx`S")]TimeSpan time )
 		{
-			if (!_lavaNode.TryGetPlayer(Context.Guild, out var player))
+			if (!_lavaNode.TryGetPlayer(Context.Guild, out LavaPlayer player))
 			{
 				await ReplyAsync("No active music player found!");
 				return;
 			}
-			var currentTrack = player.Track;
+			LavaTrack currentTrack = player.Track;
 
 			if (currentTrack.Position + time > currentTrack.Duration)
 			{
@@ -381,12 +385,12 @@ namespace DiscordNET.Modules
 		[Summary("Rewind the current track a desired amount of time")]
 		public async Task Rewind ( [Summary("Format: `xx`H`xx`M`xx`S")]TimeSpan time )
 		{
-			if (!_lavaNode.TryGetPlayer(Context.Guild, out var player))
+			if (!_lavaNode.TryGetPlayer(Context.Guild, out LavaPlayer player))
 			{
 				await ReplyAsync("No active music player found!");
 				return;
 			}
-			var currentTrack = player.Track;
+			LavaTrack currentTrack = player.Track;
 
 			if (currentTrack.Position - time < TimeSpan.Zero)
 			{
@@ -402,7 +406,7 @@ namespace DiscordNET.Modules
 		[Summary("Stop the  music playback and clear the queue")]
 		public async Task Dispose ()
 		{
-			if (!_lavaNode.TryGetPlayer(Context.Guild, out var player))
+			if (!_lavaNode.TryGetPlayer(Context.Guild, out LavaPlayer player))
 			{
 				await ReplyAsync("No active music player found!");
 				return;
@@ -415,7 +419,7 @@ namespace DiscordNET.Modules
 		[Summary("Get the lyrics for the currently playing  song from Genius")]
 		public async Task Lyrics ()
 		{
-			if (!_lavaNode.TryGetPlayer(Context.Guild, out var player)) return;
+			if (!_lavaNode.TryGetPlayer(Context.Guild, out LavaPlayer player)) return;
 			
 			var track = player.Track;
 			var query = track.Title;
@@ -429,13 +433,13 @@ namespace DiscordNET.Modules
 
 			lyrics = Regex.Replace(lyrics, @"\[.*?\]", "**$&**");
 
-			var result = track.SearchGenius().Response.Hits.First().Result;
+			GSResult result = track.SearchGenius().Response.Hits.First().Result;
 
 			if (lyrics.Length > 2048)
 			{
-				var pages = Enumerable.Range(0, lyrics.Length / 2048).Select(i => lyrics.Substring(i * 2048, 2048));
+				IEnumerable<string> pages = Enumerable.Range(0, lyrics.Length / 2048).Select(i => lyrics.Substring(i * 2048, 2048));
 
-				var interactivity = new InteractiveService(Context.Client.GetShardFor(Context.Guild));
+				InteractiveService interactivity = new InteractiveService(Context.Client.GetShardFor(Context.Guild));
 				await interactivity.SendPaginatedMessageAsync(Context, new PaginatedMessage
 				{
 					Title = result.FullTitle.ToUpper(),
@@ -446,7 +450,7 @@ namespace DiscordNET.Modules
 
 			lyrics += "\n\n *For the rest of the lyrics, click the title*";
 
-			var lyricsEmbed = new EmbedBuilder
+			Embed lyricsEmbed = new EmbedBuilder
 			{
 				Title = result.FullTitle.ToUpper(),
 				Description = lyrics,
@@ -464,7 +468,7 @@ namespace DiscordNET.Modules
 		[Summary("Get the info card for the currently playing song")]
 		public async Task NowPlaying ()
 		{
-			if (!_lavaNode.TryGetPlayer(Context.Guild, out var player))
+			if (!_lavaNode.TryGetPlayer(Context.Guild, out LavaPlayer player))
 			{
 				await ReplyAsync("No active music player found!");
 				return;
@@ -476,7 +480,7 @@ namespace DiscordNET.Modules
 				return;
 			}
 
-			var track = player.Track;
+			LavaTrack track = player.Track;
 			await _musicManager.MusicEmbed(track, Context);
 		}
 
@@ -484,23 +488,23 @@ namespace DiscordNET.Modules
 		[Summary("Get a listing of the queue")]
 		public async Task Queue ()
 		{
-			var queue = _musicManager.Queue;
-			var items = await queue.GetItems();
+			QueueHandler queue = _musicManager.Queue;
+			List<QueueTrack> items = await queue.GetItems();
 
-			var description = new List<string>();
+			List<string> description = new List<string>();
 
 			if (items.Count > 10)
 			{
 				for (int i = 0; i < 10; i++)
 				{
-					var trackCollection = items[i];
+					QueueTrack trackCollection = items[i];
 					description.Add($"**{i + 1}.** `{trackCollection.Track.Title}` [{trackCollection.Track.Duration}] Added by: {trackCollection.User.Username}");
 				}
 			}
 			else if (items.Count > 0)
 			{
-				var count = 1;
-				foreach (var trackCollection in items)
+				int count = 1;
+				foreach (QueueTrack trackCollection in items)
 				{
 					description.Add($"**{count}.** `{trackCollection.Track.Title}` [{trackCollection.Track.Duration}] Added by: {trackCollection.User.Username}");
 					count++;
@@ -511,7 +515,7 @@ namespace DiscordNET.Modules
 				await Context.Channel.SendMessageAsync("There are no tracks in the queue.");
 			}
 
-			var queueEmbed = new EmbedBuilder
+			Embed queueEmbed = new EmbedBuilder
 			{
 				Title = $"Queue for {Context.Guild.Name}",
 				Description = string.Join("\n", description),
