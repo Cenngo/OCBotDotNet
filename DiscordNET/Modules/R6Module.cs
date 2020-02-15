@@ -13,11 +13,11 @@ namespace DiscordNET.Modules
 	[Group("R6")]
 	public class R6Module : ModuleBase<ShardedCommandContext>
 	{
-		private readonly DiscordSocketClient _client;
+		private readonly DiscordShardedClient _client;
 		private readonly CommandService _commmands;
 		private readonly R6Handler _r6;
 
-		public R6Module(DiscordSocketClient client, CommandService commands)
+		public R6Module(DiscordShardedClient client, CommandService commands)
 		{
 			_client = client;
 			_commmands = commands;
