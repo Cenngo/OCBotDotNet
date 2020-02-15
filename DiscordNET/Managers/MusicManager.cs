@@ -4,6 +4,7 @@ using Discord.WebSocket;
 using DiscordNET.Handlers;
 using System;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Victoria;
 using Victoria.EventArgs;
@@ -39,18 +40,18 @@ namespace DiscordNET.Managers
 
 		private Task LavaNode_OnLog ( LogMessage arg )
 		{
-			string[] argArray = arg.ToString().Split(" ");
-			string info = argArray[0] + " " + argArray[1] + " " + argArray[2];
-			string remainder = string.Empty;
+			StringBuilder infoString = new StringBuilder();
+			StringBuilder messageString = new StringBuilder();
 
-			for (int i = 3; i < argArray.Length; i++)
-			{
-				remainder += " " + argArray[i];
-			}
+			infoString.AppendJoin(" ", DateTime.Now.ToString("hh:mm:ss"), arg.Source);
+
+			messageString.AppendJoin(" ", arg.Message, arg.Exception);
+
 			Console.ForegroundColor = ConsoleColor.Yellow;
-			Console.Write(info);
+
+			Console.Write(infoString.ToString());
 			Console.ResetColor();
-			Console.Write(remainder + "\n");
+			Console.WriteLine($"\t {messageString}");
 
 			return Task.CompletedTask;
 		}

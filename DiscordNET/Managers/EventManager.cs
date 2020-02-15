@@ -4,6 +4,8 @@ using Discord.WebSocket;
 using DiscordNET.Data;
 using LiteDB;
 using System;
+using System.Globalization;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace DiscordNET.Managers
@@ -63,18 +65,18 @@ namespace DiscordNET.Managers
 
 		private Task OnLog ( LogMessage arg )
 		{
-			var argArray = arg.ToString().Split(" ");
-			var info = argArray[0] + " " + argArray[1] + " " + argArray[2];
-			string remainder = string.Empty;
+			StringBuilder infoString = new StringBuilder();
+			StringBuilder messageString = new StringBuilder();
 
-			for(int i = 3; i < argArray.Length; i++)
-			{
-				remainder += " " + argArray[i];
-			}
+			infoString.AppendJoin(" ", DateTime.Now.ToString("hh:mm:ss"), arg.Source);
+
+			messageString.AppendJoin(" ", arg.Message, arg.Exception);
+
 			Console.ForegroundColor = ConsoleColor.Magenta;
-			Console.Write(info);
+
+			Console.Write(infoString.ToString());
 			Console.ResetColor();
-			Console.Write(remainder + "\n");
+			Console.WriteLine($"\t {messageString}");
 
 			return Task.CompletedTask;
 		}
