@@ -56,7 +56,8 @@ namespace DiscordNET.Modules
 			await Context.Channel.SendMessageAsync(random.Next().ToString());
 		}
 
-		[Command("list prefix")]
+		[Command("prefix list")]
+		[Summary("List all of the prefixes that are resgistered under the current guild")]
 		public async Task ListPrefixes()
 		{
 			var currentConfig = _guildConfig.FindOne(x => x.GuildId == Context.Guild.Id);
@@ -72,8 +73,9 @@ namespace DiscordNET.Modules
 			await ReplyAsync(replyString.ToString());
 		}
 
-		[Command("add prefix")]
-		public async Task AddPrefix (string prefix)
+		[Command("prefix add")]
+		[Summary("Register a new prefix under the current guild")]
+		public async Task AddPrefix ([Summary("Prefix to Add")]string prefix)
 		{
 			var currentConfig = _guildConfig.FindOne(x => x.GuildId == Context.Guild.Id);
 
@@ -82,8 +84,9 @@ namespace DiscordNET.Modules
 			await ReplyAsync($"Successfully Added `{prefix}` prefix");
 		}
 
-		[Command("remove prefix")]
-		public async Task RemovePrefix ( string prefix )
+		[Command("prefix remove")]
+		[Summary("Remove a prefix from the valid prefix list registered under the current guild")]
+		public async Task RemovePrefix ( [Summary("Prefix to Remove")]string prefix )
 		{
 			var currentConfig = _guildConfig.FindOne(x => x.GuildId == Context.Guild.Id);
 
@@ -95,8 +98,9 @@ namespace DiscordNET.Modules
 			await ReplyAsync($"Successfully Removed `{prefix}` prefix");
 		}
 
-		[Command("set irritate")]
-		public async Task SetIrritate (bool state)
+		[Command("irritate set")]
+		[Summary("Set the Irritation Mode")]
+		public async Task SetIrritate ([Summary("True / False")]bool state)
 		{
 			var currentConfig = _guildConfig.FindOne(x => x.GuildId == Context.Guild.Id);
 
@@ -106,7 +110,8 @@ namespace DiscordNET.Modules
 		}
 
 		[Command("whitelist add")]
-		public async Task AddWhitelist(params string[] mentions)
+		[Summary("Add a Person to the whitelist to be excluded from bot activities that are meant to irritate people")]
+		public async Task AddWhitelist([Summary("Mention the users to be effected by the change")]params string[] mentions)
 		{
 			var currentConfig = _guildConfig.FindOne(x => x.GuildId == Context.Guild.Id);
 
@@ -136,6 +141,7 @@ namespace DiscordNET.Modules
 		}
 
 		[Command("whitelist list")]
+		[Summary("List the Current guild whitelist")]
 		public async Task ListWhitelist()
 		{
 			var currentConfig = _guildConfig.FindOne(x => x.GuildId == Context.Guild.Id);
@@ -152,7 +158,8 @@ namespace DiscordNET.Modules
 		}
 
 		[Command("whitelist remove")]
-		public async Task RemoveWhitelist ( params string[] mentions )
+		[Summary("Remove a Person to the whitelist to be excluded from bot activities that are meant to irritate people")]
+		public async Task RemoveWhitelist ( [Summary("Mention the users to be effected by the change")]params string[] mentions )
 		{
 			var currentConfig = _guildConfig.FindOne(x => x.GuildId == Context.Guild.Id);
 
