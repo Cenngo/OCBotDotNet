@@ -49,12 +49,12 @@ namespace DiscordNET
 				LogLevel  = LogSeverity.Debug
 			});
 
-			var serviceManager = new ServiceManager(_client, _commands);
-			var eventManager = new EventManager(_client);
+			ServiceManager serviceManager = new ServiceManager(_client, _commands);
+			EventManager eventManager = new EventManager(_client);
 
-			var _services = serviceManager.BuildServiceProvider();
+			IServiceProvider _services = serviceManager.BuildServiceProvider();
 
-			var handler = new CommandHandler(_client, _commands, _services);
+			CommandHandler handler = new CommandHandler(_client, _commands, _services);
 
 			await Task.Delay(-1);
 		}
