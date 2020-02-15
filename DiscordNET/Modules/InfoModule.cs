@@ -29,6 +29,7 @@ namespace DiscordNET.Modules
 		}
 
 		[Command("info")]
+		[Summary("Get the guild information")]
 		public async Task Info ()
 		{
 			var guild = Context.Guild;
@@ -49,6 +50,7 @@ namespace DiscordNET.Modules
 		}
 
 		[Command("invite")]
+		[Summary("Get the invite link for the bot")]
 		public async Task Invite()
 		{
 			var dmChannel = await Context.User.GetOrCreateDMChannelAsync();
