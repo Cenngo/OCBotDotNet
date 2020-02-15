@@ -32,12 +32,12 @@ namespace DiscordNET.Modules
 		[Summary("Get the guild information")]
 		public async Task Info ()
 		{
-			var guild = Context.Guild;
-			var name = guild.Name;
-			var owner = guild.Owner.Username;
-			var members = guild.MemberCount;
+			SocketGuild guild = Context.Guild;
+			string name = guild.Name;
+			string owner = guild.Owner.Username;
+			int members = guild.MemberCount;
 
-			var infoEmbed = new EmbedBuilder()
+			Embed infoEmbed = new EmbedBuilder()
 			{
 				Title = $"Info for Guild: {name}",
 				Color = Color.Orange
@@ -46,14 +46,14 @@ namespace DiscordNET.Modules
 			.AddField("Member Count", members.ToString(), true)
 			.Build();
 
-			await Context.Channel.SendMessageAsync(embed: infoEmbed);
+			await ReplyAsync(embed: infoEmbed);
 		}
 
 		[Command("invite")]
 		[Summary("Get the invite link for the bot")]
 		public async Task Invite()
 		{
-			var dmChannel = await Context.User.GetOrCreateDMChannelAsync();
+			IDMChannel dmChannel = await Context.User.GetOrCreateDMChannelAsync();
 
 			await dmChannel.SendMessageAsync("https://discordapp.com/api/oauth2/authorize?client_id=646070311371931661&permissions=0&scope=bot");
 		}
@@ -63,15 +63,15 @@ namespace DiscordNET.Modules
 		{
 			UserCollection userData = JsonConvert.DeserializeObject<UserCollection>(File.ReadAllText("users.json"));
 
-			var user = userData.userList.FirstOrDefault(x => x.discordID == Context.User.Id);
-			if (user == default(userData))
+			UserData user = userData.userList.FirstOrDefault(x => x.discordID == Context.User.Id);
+			if (user == default(UserData))
 			{
 				await ReplyAsync("User is not registered to a language");
 				return;
 			}
 			else
 			{
-				var infoEmbed = new EmbedBuilder()
+				Embed infoEmbed = new EmbedBuilder()
 				{
 					Title = $"User: {Context.User}",
 					Color = Color.Orange
@@ -80,7 +80,7 @@ namespace DiscordNET.Modules
 			.AddField("Language", user.langauge.ToString(), true)
 			.Build();
 
-				await Context.Channel.SendMessageAsync(embed: infoEmbed);
+				await ReplyAsync(embed: infoEmbed);
 			}
 		}
 		[Command("registerlang")]
@@ -88,7 +88,7 @@ namespace DiscordNET.Modules
 		{
 			UserCollection userData = JsonConvert.DeserializeObject<UserCollection>(File.ReadAllText("users.json"));
 
-			userData userMatch = userData.userList.FirstOrDefault(x => x.discordID == Context.User.Id);
+			UserData userMatch = userData.userList.FirstOrDefault(x => x.discordID == Context.User.Id);
 			Insult insults = JsonConvert.DeserializeObject<Insult>(File.ReadAllText("insults.json"));
 			//try
 			//{
@@ -102,7 +102,7 @@ namespace DiscordNET.Modules
 			if (!insults.SupportedLanguages.Contains(lang)){
 				await ReplyAsync("Language "+lang+" not supported.");
 			}
-			else if (userMatch != default(userData))
+			else if (userMatch != default(UserData))
 			{
 				userMatch.langauge = lang; 
 				await ReplyAsync("User " + userMatch.dHandle + " has been changed as a " + userMatch.langauge + " speaker.");
@@ -111,7 +111,7 @@ namespace DiscordNET.Modules
 			{
 				try
 				{
-					userData.userList.Add(new userData
+					userData.userList.Add(new UserData
 					{
 						dHandle = Context.User.Username + "#" + Context.User.Discriminator,
 						discordID = Context.User.Id,
