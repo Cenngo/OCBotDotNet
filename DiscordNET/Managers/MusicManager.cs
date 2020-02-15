@@ -39,8 +39,8 @@ namespace DiscordNET.Managers
 
 		private Task LavaNode_OnLog ( LogMessage arg )
 		{
-			var argArray = arg.ToString().Split(" ");
-			var info = argArray[0] + " " + argArray[1] + " " + argArray[2];
+			string[] argArray = arg.ToString().Split(" ");
+			string info = argArray[0] + " " + argArray[1] + " " + argArray[2];
 			string remainder = string.Empty;
 
 			for (int i = 3; i < argArray.Length; i++)
