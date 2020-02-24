@@ -2,9 +2,12 @@
 using Discord.Commands;
 using Discord.WebSocket;
 using DiscordNET.Handlers;
+using Raven.Client.ServerWide;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Victoria;
 using Victoria.EventArgs;
@@ -16,18 +19,35 @@ namespace DiscordNET.Managers
 		private readonly DiscordShardedClient _client;
 		private readonly LavaNode _lavaNode;
 		public QueueHandler Queue;
+		private CancellationTokenSource _cancelTokenSource;
 
 		public MusicManager ( DiscordShardedClient client, LavaNode lavaNode, QueueHandler queue = null )
 		{
 			_client = client;
 			_lavaNode = lavaNode;
 			Queue = queue ?? new QueueHandler(_lavaNode, _client);
+			_cancelTokenSource = new CancellationTokenSource();
 
 			_client.ShardReady += OnReady;
 			_lavaNode.OnTrackEnded += OnTrackEnded;
 			_lavaNode.OnTrackStuck += OnTrackStuck;
 			_lavaNode.OnLog += LavaNode_OnLog;
 			_lavaNode.OnTrackException += OnTrackException;
+			_lavaNode.OnPlayerUpdated += OnPLayerUpdate;
+		}
+
+		private async Task OnPLayerUpdate ( PlayerUpdateEventArgs arg )
+		{
+
+		}
+
+		private async Task AutomaticDisconnect(CancellationToken token)
+		{
+			await Task.Delay(300000, token);
+
+			if (token.IsCancellationRequested)
+				return;
+
 		}
 
 		private Task OnTrackException ( TrackExceptionEventArgs arg )

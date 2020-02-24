@@ -1,4 +1,5 @@
-﻿using Discord.Commands;
+﻿using Discord;
+using Discord.Commands;
 using Discord.WebSocket;
 using DiscordNET.Data;
 using LiteDB;
@@ -40,11 +41,12 @@ namespace DiscordNET.Modules
 				return;
 			}
 
-			var messages = Context.Channel.GetMessagesAsync(count).ToList();
+			var messages = Context.Channel.GetMessagesAsync(count);
 			var channel = Context.Channel as SocketTextChannel;
 
-			//FIX BUG: No Method found for bulk deletion
-			//await channel.DeleteMessagesAsync(messages);
+			var messageList = messages as IEnumerable<IMessage>;
+
+			await channel.DeleteMessagesAsync(messageList);
 		}
 
 		[Command("dice")]
