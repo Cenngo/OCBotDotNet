@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -88,10 +89,17 @@ namespace DiscordNET.Modules
 		[Summary("Remove a prefix from the valid prefix list registered under the current guild")]
 		public async Task RemovePrefix ( [Summary("Prefix to Remove")]string prefix )
 		{
+			if(_guildConfig.FindOne(x => x.GuildId == Context.Guild.Id).Prefix.Count <= 1)
+			{
+				await ReplyAsync("You cannot have less than 1 prefix registered to the guild.");
+				return;
+			}
+
 			var currentConfig = _guildConfig.FindOne(x => x.GuildId == Context.Guild.Id);
 
 			if (!currentConfig.Prefix.Remove(prefix))
 			{
+				await ReplyAsync("An Error Has Occured During Removel Process!");
 				return;
 			}
 			_guildConfig.Update(currentConfig);
