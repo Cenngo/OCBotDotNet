@@ -52,9 +52,11 @@ namespace DiscordNET.Modules
 		[Alias("random")]
 		public async Task Dice ( int maxValue = 6 )
 		{
-			Random random = new Random(Convert.ToInt32(DateTime.UnixEpoch));
+			Random random = new Random(DateTime.Now.Second);
 
-			await Context.Channel.SendMessageAsync(random.Next().ToString());
+			int randomNumber = random.Next(1, maxValue);
+
+			await ReplyAsync(randomNumber.ToString());
 		}
 
 		[Command("prefix list")]
