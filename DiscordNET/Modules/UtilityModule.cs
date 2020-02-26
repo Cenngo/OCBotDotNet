@@ -31,7 +31,7 @@ namespace DiscordNET.Modules
 		}
 
 		[Command("delete")]
-		[RequireUserPermission(Discord.GuildPermission.ManageMessages)]
+		[RequireUserPermission(GuildPermission.ManageMessages)]
 		[Summary("Deletes Messages")]
 		public async Task Delete ( int count = 1 )
 		{
@@ -41,12 +41,10 @@ namespace DiscordNET.Modules
 				return;
 			}
 
-			IAsyncEnumerable messages = Context.Channel.GetMessagesAsync(count);
+			var messages = await Context.Channel.GetMessagesAsync(count).FlattenAsync();
 			SocketTextChannel channel = Context.Channel as SocketTextChannel;
 
-			IEnumerable<IMessage> messageList = messages as IEnumerable<IMessage>;
-
-			await channel.DeleteMessagesAsync(messageList);
+			await channel.DeleteMessagesAsync(messages);
 		}
 
 		[Command("dice")]
