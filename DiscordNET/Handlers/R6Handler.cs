@@ -16,43 +16,43 @@ namespace DiscordNET.Handlers
 	{
 		public async Task<R6NameSearch> ParseByName(string username, string platform)
 		{
-			var html = string.Empty;
-			var url = @$"https://r6tab.com/api/search.php?platform={platform}&search={username}";
+			string html = string.Empty;
+			string url = @$"https://r6tab.com/api/search.php?platform={platform}&search={username}";
 			HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
 			request.Method = "GET";
 			request.ContentType = "application/json";
 			using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
-			using (var stream = response.GetResponseStream())
-			using (var sr = new StreamReader(stream))
+			using (Stream stream = response.GetResponseStream())
+			using (StreamReader sr = new StreamReader(stream))
 				html = sr.ReadToEnd();
 
-			var result = JsonConvert.DeserializeObject<R6NameSearch>(html);
+			R6NameSearch result = JsonConvert.DeserializeObject<R6NameSearch>(html);
 			return result;
 		}
 
 		public async Task<R6IdSearch> ParseById(string userId)
 		{
-			var html = string.Empty;
-			var urlById = @$"https://r6tab.com/api/player.php?p_id={userId}";
+			string html = string.Empty;
+			string urlById = @$"https://r6tab.com/api/player.php?p_id={userId}";
 			HttpWebRequest request = (HttpWebRequest)WebRequest.Create(urlById);
 			request.Method = "GET";
 			using (HttpWebResponse responseById = (HttpWebResponse)request.GetResponse())
-			using (var stream = responseById.GetResponseStream())
-			using (var sr = new StreamReader(stream))
+			using (Stream stream = responseById.GetResponseStream())
+			using (StreamReader sr = new StreamReader(stream))
 				html = sr.ReadToEnd();
-			var result = JsonConvert.DeserializeObject<R6IdSearch>(html);
+			R6IdSearch result = JsonConvert.DeserializeObject<R6IdSearch>(html);
 			return result;
 		}
 
 		public async Task<R6UserStats> ParseComplete(string username, string platform)
 		{
-			var nameSearch = await ParseByName(username, platform);
-			var idSearch = await ParseById(nameSearch.results[0].pId);
+			R6NameSearch nameSearch = await ParseByName(username, platform);
+			R6IdSearch idSearch = await ParseById(nameSearch.results[0].pId);
 
-			var avatarUrl = $"https://ubisoft-avatars.akamaized.net/{idSearch.userId}/default_146_146.png";
-			var rank = await RankHandle(Convert.ToInt32(idSearch.currentMMR));
+			string avatarUrl = $"https://ubisoft-avatars.akamaized.net/{idSearch.userId}/default_146_146.png";
+			R6Rank rank = await RankHandle(Convert.ToInt32(idSearch.currentMMR));
 
-			var result = new R6UserStats
+			R6UserStats result = new R6UserStats
 			{
 				stats = idSearch,
 				rank = rank.rank,
@@ -65,11 +65,11 @@ namespace DiscordNET.Handlers
 
 		public async Task<R6Rank> RankHandle(int mmr)
 		{
-			var rank = string.Empty;
+			string rank = string.Empty;
 			Discord.Color color;
 			int tier = -1;
 
-			var CBSNumber = new List<string>
+			List<string> CBSNumber = new List<string>
 			{
 				"V",
 				"IV",
@@ -78,7 +78,7 @@ namespace DiscordNET.Handlers
 				"I"
 			};
 
-			var GPNumber = new List<string>
+			List<string> GPNumber = new List<string>
 			{
 				"III",
 				"II",
@@ -121,7 +121,7 @@ namespace DiscordNET.Handlers
 				case int n when (n >= 3200 && n < 4400):
 					color = new Color(0x25a9a2);
 
-					var number = (mmr - 3200) / 400;
+					int number = (mmr - 3200) / 400;
 					rank = "Platinum " + GPNumber[tier];
 					break;
 				case int n when (n >= 4400 && n < 5000):
@@ -136,7 +136,7 @@ namespace DiscordNET.Handlers
 					break;
 			}
 
-			var result = new R6Rank
+			R6Rank result = new R6Rank
 			{
 				rank = rank,
 				rankColor = color
@@ -147,7 +147,7 @@ namespace DiscordNET.Handlers
 
 		public async Task<string> DecodeOperators(string op)
 		{
-			var operators = new Dictionary<string, string>
+			Dictionary<string, string> operators = new Dictionary<string, string>
 			{
 				{"2:1", "Smoke" },
 				{"2:2", "Castle" },
@@ -202,7 +202,7 @@ namespace DiscordNET.Handlers
 				{"3:12", "Mozzie" }
 			};
 
-			if (operators.TryGetValue(op, out var opName)) return opName;
+			if (operators.TryGetValue(op, out string opName)) return opName;
 			else return "NaN";
  
 		}

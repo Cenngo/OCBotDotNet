@@ -8,7 +8,7 @@ namespace DiscordNET
 	{
 		static void Main ( string[] args )
 		{
-			var bot = new Bot();
+			Bot bot = new Bot();
 			bot.MainAsync().GetAwaiter().GetResult();
 		}
 	}

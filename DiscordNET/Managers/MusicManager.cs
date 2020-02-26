@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Victoria;
 using Victoria.EventArgs;
+using Victoria.Responses.Rest;
 
 namespace DiscordNET.Managers
 {
@@ -19,14 +20,12 @@ namespace DiscordNET.Managers
 		private readonly DiscordShardedClient _client;
 		private readonly LavaNode _lavaNode;
 		public QueueHandler Queue;
-		private CancellationTokenSource _cancelTokenSource;
 
 		public MusicManager ( DiscordShardedClient client, LavaNode lavaNode, QueueHandler queue = null )
 		{
 			_client = client;
 			_lavaNode = lavaNode;
 			Queue = queue ?? new QueueHandler(_lavaNode, _client);
-			_cancelTokenSource = new CancellationTokenSource();
 
 			_client.ShardReady += OnReady;
 			_lavaNode.OnTrackEnded += OnTrackEnded;
@@ -38,7 +37,11 @@ namespace DiscordNET.Managers
 
 		private async Task OnPLayerUpdate ( PlayerUpdateEventArgs arg )
 		{
+			IChannel voiceChannel = arg.Player.VoiceChannel as IChannel;
 
+			IEnumerable<IUser> users = await voiceChannel.GetUsersAsync().FlattenAsync();
+			if (users.Count(x => !x.IsBot) == 0)
+				await _lavaNode.LeaveAsync(arg.Player.VoiceChannel);
 		}
 
 		private async Task AutomaticDisconnect(CancellationToken token)
@@ -89,11 +92,11 @@ namespace DiscordNET.Managers
 		{
 			if (!arg.Reason.ShouldPlayNext()) return;
 
-			var list = await Queue.GetItems();
+			List<QueueTrack> list = await Queue.GetItems();
 
-			var track = list.FirstOrDefault();
+			QueueTrack track = list.FirstOrDefault();
 
-			var result = await Queue.TryDequeue(track.Track);
+			bool result = await Queue.TryDequeue(track.Track);
 
 			if (result)
 			{
@@ -113,13 +116,13 @@ namespace DiscordNET.Managers
 
 		public async Task MusicEmbed ( QueueTrack trackCollection )
 		{
-			var videoId = trackCollection.Track.Url.ToString().Substring(trackCollection.Track.Url.ToString().Length - 11);
-			var thumbnailUrl = $"https://i.ytimg.com/vi/{videoId}/hqdefault.jpg";
+			string videoId = trackCollection.Track.Url.Substring(trackCollection.Track.Url.Length - 11);
+			string thumbnailUrl = $"https://i.ytimg.com/vi/{videoId}/hqdefault.jpg";
 
-			var embed = new EmbedBuilder
+			EmbedBuilder embed = new EmbedBuilder
 			{
-				Title = trackCollection.Track.Title.ToString(),
-				Url = trackCollection.Track.Url.ToString(),
+				Title = trackCollection.Track.Title,
+				Url = trackCollection.Track.Url,
 				Color = Color.DarkPurple,
 				ThumbnailUrl = thumbnailUrl,
 				Author = new EmbedAuthorBuilder
@@ -131,20 +134,20 @@ namespace DiscordNET.Managers
 			.AddField("Channel", trackCollection.Track.Author, true)
 			.AddField("Duration", trackCollection.Track.Duration.ToString(), true);
 
-			var msg = embed.Build();
+			Embed msg = embed.Build();
 
 			await trackCollection.Channel.SendMessageAsync(embed: msg);
 		}
 
 		public async Task MusicEmbed ( LavaTrack track, ShardedCommandContext context )
 		{
-			var videoId = track.Url.ToString().Substring(track.Url.ToString().Length - 11);
-			var thumbnailUrl = $"https://i.ytimg.com/vi/{videoId}/hqdefault.jpg";
+			string videoId = track.Url.Substring(track.Url.Length - 11);
+			string thumbnailUrl = $"https://i.ytimg.com/vi/{videoId}/hqdefault.jpg";
 
-			var embed = new EmbedBuilder
+			EmbedBuilder embed = new EmbedBuilder
 			{
-				Title = track.Title.ToString(),
-				Url = track.Url.ToString(),
+				Title = track.Title,
+				Url = track.Url,
 				Color = Color.DarkPurple,
 				ThumbnailUrl = thumbnailUrl,
 				Author = new EmbedAuthorBuilder
@@ -156,20 +159,20 @@ namespace DiscordNET.Managers
 			.AddField("Channel", track.Author, true)
 			.AddField("Duration", track.Duration.ToString(), true);
 
-			var msg = embed.Build();
+			Embed msg = embed.Build();
 
 			await context.Channel.SendMessageAsync(embed: msg);
 		}
 
 		public async Task QueueEmbed ( QueueTrack trackCollection )
 		{
-			var videoId = trackCollection.Track.Url.ToString().Substring(trackCollection.Track.Url.ToString().Length - 11);
-			var thumbnailUrl = $"https://i.ytimg.com/vi/{videoId}/hqdefault.jpg";
+			string videoId = trackCollection.Track.Url.Substring(trackCollection.Track.Url.Length - 11);
+			string thumbnailUrl = $"https://i.ytimg.com/vi/{videoId}/hqdefault.jpg";
 
-			var embed = new EmbedBuilder
+			EmbedBuilder embed = new EmbedBuilder
 			{
-				Title = trackCollection.Track.Title.ToString(),
-				Url = trackCollection.Track.Url.ToString(),
+				Title = trackCollection.Track.Title,
+				Url = trackCollection.Track.Url,
 				Color = Color.DarkPurple,
 				ThumbnailUrl = thumbnailUrl,
 				Author = new EmbedAuthorBuilder
@@ -182,22 +185,22 @@ namespace DiscordNET.Managers
 			.AddField("Duration", trackCollection.Track.Duration.ToString(), true)
 			.AddField("Queue Order", Queue.GetQueueCount(), true);
 
-			var msg = embed.Build();
+			Embed msg = embed.Build();
 
 			await trackCollection.Channel.SendMessageAsync(embed: msg);
 		}
 
 		public async Task QueueEmbed ( LavaTrack track, ShardedCommandContext context )
 		{
-			var videoId = track.Url.ToString().Substring(track.Url.ToString().Length - 11);
-			var thumbnailUrl = $"https://i.ytimg.com/vi/{videoId}/hqdefault.jpg";
+			string videoId = track.Url.Substring(track.Url.Length - 11);
+			string thumbnailUrl = $"https://i.ytimg.com/vi/{videoId}/hqdefault.jpg";
 
-			var queueLength = await Queue.GetQueueCount();
+			int queueLength = await Queue.GetQueueCount();
 
-			var embed = new EmbedBuilder
+			EmbedBuilder embed = new EmbedBuilder
 			{
-				Title = track.Title.ToString(),
-				Url = track.Url.ToString(),
+				Title = track.Title,
+				Url = track.Url,
 				Color = Color.DarkPurple,
 				ThumbnailUrl = thumbnailUrl,
 				Author = new EmbedAuthorBuilder
@@ -210,30 +213,30 @@ namespace DiscordNET.Managers
 			.AddField("Channel", track.Author, true)
 			.AddField("Duration", track.Duration.ToString(), true);
 
-			var msg = embed.Build();
+			Embed msg = embed.Build();
 
 			await context.Channel.SendMessageAsync(embed: msg);
 		}
 
 		public async Task PlaylistEmbed ( string query, ShardedCommandContext context )
 		{
-			var results = await _lavaNode.SearchAsync(query);
+			SearchResponse results = await _lavaNode.SearchAsync(query);
 
-			var track = results.Tracks[0];
-			var name = results.Playlist.Name;
-			var duration = TimeSpan.Zero;
-			var count = 0;
+			LavaTrack track = results.Tracks[0];
+			string name = results.Playlist.Name;
+			TimeSpan duration = TimeSpan.Zero;
+			int count = 0;
 
-			var videoId = track.Url.ToString().Substring(track.Url.ToString().Length - 11);
-			var thumbnailUrl = $"https://i.ytimg.com/vi/{videoId}/hqdefault.jpg";
+			string videoId = track.Url.Substring(track.Url.Length - 11);
+			string thumbnailUrl = $"https://i.ytimg.com/vi/{videoId}/hqdefault.jpg";
 
-			foreach (var item in results.Tracks)
+			foreach (LavaTrack item in results.Tracks)
 			{
 				count++;
 				duration += item.Duration;
 			}
 
-			var embed = new EmbedBuilder
+			EmbedBuilder embed = new EmbedBuilder
 			{
 				Title = name,
 				Url = query,
@@ -248,7 +251,7 @@ namespace DiscordNET.Managers
 			.AddField("Number of Tracks", count, true)
 			.AddField("Duration", duration, true);
 
-			var msg = embed.Build();
+			Embed msg = embed.Build();
 
 			await context.Channel.SendMessageAsync(embed: msg);
 		}

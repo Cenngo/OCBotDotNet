@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using DiscordNET.Data.Rainbow6;
 using DiscordNET.Extensions;
 
 namespace DiscordNET.Modules
@@ -27,9 +28,9 @@ namespace DiscordNET.Modules
 		[Command("rank")]
 		public async Task Rank(string username, string platform = "uplay")
 		{
-			var results = await _r6.ParseComplete(username, platform);
+			R6UserStats results = await _r6.ParseComplete(username, platform);
 
-			var embed = new EmbedBuilder
+			Embed embed = new EmbedBuilder
 			{
 				Title = $"{results.stats.playerName}",
 				Description = $"{results.rank}",
@@ -44,15 +45,15 @@ namespace DiscordNET.Modules
 		[Command("profile")]
 		public async Task Profile(string username, string platform = "uplay")
 		{
-			var results = await _r6.ParseComplete(username, platform);
-			var stats = results.stats;
+			R6UserStats results = await _r6.ParseComplete(username, platform);
+			R6IdSearch stats = results.stats;
 
-			var kd = Convert.ToDouble(stats.kd) / 100;
+			double kd = Convert.ToDouble(stats.kd) / 100;
 
-			var favAttacker = await _r6.DecodeOperators(stats.favAttacker);
-			var favDefender = await _r6.DecodeOperators(stats.favDefender);
+			string favAttacker = await _r6.DecodeOperators(stats.favAttacker);
+			string favDefender = await _r6.DecodeOperators(stats.favDefender);
 
-			var embed = new EmbedBuilder
+			Embed embed = new EmbedBuilder
 			{
 				Title = $"{results.stats.playerName}",
 				ThumbnailUrl = results.avatarUrl,

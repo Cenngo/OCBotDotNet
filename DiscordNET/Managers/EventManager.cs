@@ -4,6 +4,7 @@ using Discord.WebSocket;
 using DiscordNET.Data;
 using LiteDB;
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using System.Threading.Tasks;
@@ -46,10 +47,10 @@ namespace DiscordNET.Managers
 
 		private async Task OnUserTyping ( SocketUser user, ISocketMessageChannel channel )
 		{
-			var guild = (channel as SocketGuildChannel)?.Guild;
+			SocketGuild guild = (channel as SocketGuildChannel)?.Guild;
 
-			var currentConfig = _guildConfig.FindOne(x => x.GuildId == guild.Id);
-			var whitelist = currentConfig.WhiteList;
+			GuildConfig currentConfig = _guildConfig.FindOne(x => x.GuildId == guild.Id);
+			List<string> whitelist = currentConfig.WhiteList;
 
 			if (!currentConfig.Irritate || whitelist.Exists(x => x == string.Join(" ", user.Username, user.Discriminator)))
 			{

@@ -35,12 +35,12 @@ namespace DiscordNET.Handlers
 
 		private async Task HandleCommandAsync ( SocketMessage msg )
 		{
-			var message = msg as SocketUserMessage;
+			SocketUserMessage message = msg as SocketUserMessage;
 			if (message == null) return;
 
 			int argPos = 0;
 
-			var context = new ShardedCommandContext(_client, message);
+			ShardedCommandContext context = new ShardedCommandContext(_client, message);
 
 			if(!_guildConfig.Exists(x => x.GuildId == context.Guild.Id))
 			{
@@ -56,14 +56,14 @@ namespace DiscordNET.Handlers
 			if (message.Author.IsBot || message.HasMentionPrefix(_client.CurrentUser, ref argPos))
 				return;
 
-			var currentConfig = _guildConfig.FindOne(x => x.GuildId == context.Guild.Id);
-			var prefixes = currentConfig.Prefix;
+			GuildConfig currentConfig = _guildConfig.FindOne(x => x.GuildId == context.Guild.Id);
+			List<string> prefixes = currentConfig.Prefix;
 
-			foreach(var prefix in prefixes)
+			foreach(string prefix in prefixes)
 			{
 				if (message.HasStringPrefix(prefix, ref argPos)) 
 				{
-					var result = await _commands.ExecuteAsync(context: context, argPos: argPos, services: _services);
+					IResult result = await _commands.ExecuteAsync(context: context, argPos: argPos, services: _services);
 					return;
 				}
 			}

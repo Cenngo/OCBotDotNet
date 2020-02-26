@@ -117,7 +117,7 @@ namespace DiscordNET.Modules
 		public async Task Play ( [Summary("Youtube search query")][Remainder] string query )
 		{
 			IVoiceState voiceState = Context.User as IVoiceState;
-			if (!_lavaNode.TryGetPlayer(Context.Guild, out var _player) || _player.VoiceChannel != voiceState.VoiceChannel)
+			if (!_lavaNode.TryGetPlayer(Context.Guild, out LavaPlayer _player) || _player.VoiceChannel != voiceState.VoiceChannel)
 			{
 				if (!await JoinAsync()) return;
 			}
@@ -331,7 +331,7 @@ namespace DiscordNET.Modules
 
 			if (volume == null)
 			{
-				var currentVolume = player?.Volume;
+				int? currentVolume = player?.Volume;
 				await Context.Channel.SendMessageAsync($":speaker: **Current Volume Setting:** {currentVolume}");
 				return;
 			}
@@ -421,9 +421,9 @@ namespace DiscordNET.Modules
 		{
 			if (!_lavaNode.TryGetPlayer(Context.Guild, out LavaPlayer player)) return;
 			
-			var track = player.Track;
-			var query = track.Title;
-			var lyrics = await track.GeniusLyrics();
+			LavaTrack track = player.Track;
+			string query = track.Title;
+			string lyrics = await track.GeniusLyrics();
 
 			if (lyrics == null)
 			{

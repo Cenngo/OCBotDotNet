@@ -18,16 +18,16 @@ namespace DiscordNET.Modules
         {
             try
             {
-                var OW = new Overwatch();
-                var stats = await OW.RetrieveUserStats(battleTag, region, platform);
+                Overwatch OW = new Overwatch();
+                OWInfo stats = await OW.RetrieveUserStats(battleTag, region, platform);
              
                 if (!stats.priv){
                     Dictionary<string, OwHero> comp = stats.CompStats.allHeroes;
                     Dictionary<string, OwHero> qp = stats.CompStats.allHeroes;
-                    var bestComp = await OW.SortHero(comp);
-                    var bestQP = await OW.SortHero(qp);
+                    string bestComp = await OW.SortHero(comp);
+                    string bestQP = await OW.SortHero(qp);
                     
-                    var infoEmbed = new EmbedBuilder()
+                    Embed infoEmbed = new EmbedBuilder()
                     {
                         Title = stats.name,
                         //Color = rankColor,
@@ -43,7 +43,7 @@ namespace DiscordNET.Modules
                     await ReplyAsync(embed: infoEmbed);
                 }
                 else{
-                    var infoEmbed = new EmbedBuilder()
+                    Embed infoEmbed = new EmbedBuilder()
                     {
                         Title = stats.name,
                         //Color = rankColor,
@@ -67,8 +67,8 @@ namespace DiscordNET.Modules
         {
             try
             {
-                var OW = new Overwatch();
-                var stats = await OW.RetrieveUserStats(battleTag, region, platform);
+                Overwatch OW = new Overwatch();
+                OWInfo stats = await OW.RetrieveUserStats(battleTag, region, platform);
                 List<OWRole> roles = stats.OW_RoleList;
                 if (stats.priv){
                     await ReplyAsync(stats.name + "'s Profile is private...");
@@ -84,10 +84,10 @@ namespace DiscordNET.Modules
                     await ReplyAsync("Displaying ranks for " + stats.name + "...");
 
                     foreach (OWRole r in roles){
-                        var rank = r.rankIcon.Substring(59);
+                        string rank = r.rankIcon.Substring(59);
                         rank = rank.Remove(rank.IndexOf(".")).ToLower();
                         
-                        var RankColorPair = new Dictionary<string, Color>()
+                        Dictionary<string, Color> RankColorPair = new Dictionary<string, Color>()
                         {
                             {"bronzetier", new Color(0x964B00)},
                             {"silvertier", new Color(0x808080)},
@@ -98,8 +98,8 @@ namespace DiscordNET.Modules
                             {"grandmastertier", new Color(0xffff00) }
                         };
 
-                        var rankColor = RankColorPair[rank];
-                        var infoEmbed = new EmbedBuilder()
+                        Color rankColor = RankColorPair[rank];
+                        Embed infoEmbed = new EmbedBuilder()
                         {
                             Title = r.role.CaptFirst(),
                             Color = rankColor,

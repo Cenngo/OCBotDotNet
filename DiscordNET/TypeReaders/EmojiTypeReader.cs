@@ -9,7 +9,7 @@ namespace DiscordNET.TypeReaders
 	{
 		public override Task<TypeReaderResult> ReadAsync ( ICommandContext context, string input, IServiceProvider services )
 		{
-			if (Emote.TryParse(input, out var emote))
+			if (Emote.TryParse(input, out Emote emote))
 				return Task.FromResult(TypeReaderResult.FromSuccess(emote));
 
 			return Task.FromResult(TypeReaderResult.FromError(CommandError.ParseFailed, "The argumnet could not be parsed as a Discord Emote"));

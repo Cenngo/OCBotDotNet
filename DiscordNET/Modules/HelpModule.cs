@@ -23,8 +23,8 @@ namespace DiscordNET.Modules
 		{
 			if (arg == null)
 			{
-				var modules = _commands.Modules.ToList();
-				var embedString = new StringBuilder();
+				List<ModuleInfo> modules = _commands.Modules.ToList();
+				StringBuilder embedString = new StringBuilder();
 
 				EmbedBuilder helpEmbed = new EmbedBuilder()
 				{
@@ -32,15 +32,15 @@ namespace DiscordNET.Modules
 					Color = Color.Green
 				}.WithFooter("Use the `HELP` with any command to get command specific information");
 
-				foreach (var module in modules)
+				foreach (ModuleInfo module in modules)
 				{
-					var commands = module.Commands.ToList();
+					List<CommandInfo> commands = module.Commands.ToList();
 
 					if (commands.Count == 0) continue;
 
-					var commandString = new StringBuilder();
+					StringBuilder commandString = new StringBuilder();
 
-					foreach (var command in commands)
+					foreach (CommandInfo command in commands)
 					{
 						commandString.Append($" `{command.GetCommandNameWithGroup()}`");
 					}
@@ -51,31 +51,31 @@ namespace DiscordNET.Modules
 			}
 			else
 			{
-				var result = _commands.Search(arg);
+				SearchResult result = _commands.Search(arg);
 				if (!result.IsSuccess)
 				{
 					await ReplyAsync($"No command found for {arg}");
 					return;
 				}
-				var helpEmbed = new EmbedBuilder();
+				EmbedBuilder helpEmbed = new EmbedBuilder();
 				helpEmbed.WithColor(Color.Green);
 
-				var command = result.Commands.First();
+				CommandMatch command = result.Commands.First();
 
 				helpEmbed.WithTitle(command.Command.GetCommandNameWithGroup().ToUpper());
 				helpEmbed.WithDescription(command.Command.Summary);
 
 				if (command.Command.Aliases.Count != 0)
 				{
-					var aliases = command.Command.Aliases.Select(x => $"`{x}`");
+					IEnumerable<string> aliases = command.Command.Aliases.Select(x => $"`{x}`");
 					helpEmbed.AddField("Aliases", string.Join(" ", aliases));
 				}
 
 				if (command.Command.Parameters.Count != 0)
 				{
-					var paramString = new StringBuilder();
+					StringBuilder paramString = new StringBuilder();
 
-					foreach (var param in command.Command.Parameters)
+					foreach (ParameterInfo param in command.Command.Parameters)
 					{
 						paramString.AppendLine($"`<{param.Name}>` {param.Type} - **Default:** *{param.DefaultValue ?? "null"}* -> {param.Summary ?? "`no context`"}");
 					}

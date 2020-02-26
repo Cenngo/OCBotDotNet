@@ -22,7 +22,7 @@ namespace DiscordNET.Handlers
 
 		public async Task Enqueue ( LavaTrack track, ShardedCommandContext context )
 		{
-			var queueItem = new QueueTrack
+			QueueTrack queueItem = new QueueTrack
 			{
 				Track = track,
 				User = context.Message.Author,
@@ -69,9 +69,9 @@ namespace DiscordNET.Handlers
 
 		public async Task EnqueueBulk ( List<LavaTrack> list, ShardedCommandContext context)
 		{
-			var playlist = new List<QueueTrack>();
+			List<QueueTrack> playlist = new List<QueueTrack>();
 
-			foreach (var item in list)
+			foreach (LavaTrack item in list)
 			{
 				playlist.Add(new QueueTrack
 				{
