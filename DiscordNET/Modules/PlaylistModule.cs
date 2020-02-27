@@ -36,7 +36,14 @@ namespace DiscordNET.Modules
 		[Command("Add"), Summary("Register the current queue as a playlist")]
 		public async Task AddPlaylist(string name)
 		{
-			List<QueueTrack> queue = await _musicManager.Queue.GetItems();
+			if(_lavaNode.TryGetPlayer(Context.Guild, out var player))
+			{
+				await ReplyAsync("No Music Player Found on this Guild");
+				return;
+			}
+
+			IEnumerable<Queueable> queue = player.Queue.Items;
+
 			if(_playlistCollection.Exists(x => x.GuildId == Context.Guild.Id && x.Playlists.Exists(x => x.Name == name)))
 			{
 				await ReplyAsync("Playlist with the given name already exists");
@@ -44,13 +51,12 @@ namespace DiscordNET.Modules
 			}
 			
 			List<LavaTrack> list = new List<LavaTrack>();
-			LavaPlayer player = _lavaNode.GetPlayer(Context.Guild);
 
 			list.Add(player.Track);
 
-			foreach (QueueTrack item in queue)
+			foreach (Queueable item in queue)
 			{
-				list.Add(item.Track);
+				list.Add(item.LavaTrack);
 			}
 	
 			DBList playlist = new DBList
@@ -86,7 +92,18 @@ namespace DiscordNET.Modules
 			{
 				DBPlaylistGuild guild = _playlistCollection.FindOne(x => x.GuildId == Context.Guild.Id);
 				DBList playlist = guild.Playlists.Find(x => x.Name.ToLower() == name.ToLower());
-				await _musicManager.Queue.EnqueueBulk(playlist.Playlist, Context);
+
+				_lavaNode.TryGetPlayer(Context.Guild, out LavaPlayer player);
+
+				foreach(LavaTrack track in playlist.Playlist)
+				{
+					player.Queue.Enqueue(new Queueable
+					{
+						LavaTrack = track,
+						TextChannel = Context.Channel as ITextChannel,
+						User = Context.User as IGuildUser
+					});
+				}
 				await ReplyAsync("Playlist Loaded");
 			}
 			catch (Exception)

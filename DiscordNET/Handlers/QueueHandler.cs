@@ -10,13 +10,9 @@ namespace DiscordNET.Handlers
 	public class QueueHandler
 	{
 		private List<QueueTrack> _queue { get; }
-		private readonly LavaNode _node;
-		private readonly DiscordShardedClient _client;
 
-		public QueueHandler ( LavaNode node, DiscordShardedClient client )
+		public QueueHandler ()
 		{
-			_client = client;
-			_node = node;
 			_queue = new List<QueueTrack>();
 		}
 

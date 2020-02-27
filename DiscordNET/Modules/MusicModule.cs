@@ -60,7 +60,7 @@ namespace DiscordNET.Modules
 
 			try
 			{
-				await _lavaNode.JoinAsync(voiceState.VoiceChannel, Context.Channel as ITextChannel);
+				LavaPlayer player = await _lavaNode.JoinAsync(voiceState.VoiceChannel, Context.Channel as ITextChannel);
 				await ReplyAsync($"Joined {voiceState.VoiceChannel.Name}!");
 				return true;
 			}
@@ -135,25 +135,23 @@ namespace DiscordNET.Modules
 				case LoadStatus.PlaylistLoaded:
 					foreach (LavaTrack track in results.Tracks)
 					{
-						await _musicManager.Queue.Enqueue(track, Context);
+						player.Queue.Enqueue(new Queueable
+						{
+							LavaTrack = track,
+							User = Context.User as IGuildUser,
+							TextChannel = Context.Channel as ITextChannel
+						});
 					}
 
 					await _musicManager.PlaylistEmbed(query, Context);
 
 					if (player.PlayerState != PlayerState.Playing && player.PlayerState != PlayerState.Paused)
 					{
-						List<QueueTrack> list = await _musicManager.Queue.GetItems();
-
-						QueueTrack trackCollection = list.FirstOrDefault();
-
-						bool result = await _musicManager.Queue.TryDequeue(trackCollection.Track);
-
-						if (result)
+						if(player.Queue.TryDequeue(out Queueable track))
 						{
-							await player.PlayAsync(trackCollection.Track);
-							await _musicManager.MusicEmbed(trackCollection);
+							await player.PlayAsync(track.LavaTrack);
+							await _musicManager.MusicEmbed(track);
 						}
-						return;
 					}
 					break;
 				case LoadStatus.SearchResult:
@@ -216,9 +214,15 @@ namespace DiscordNET.Modules
 
 			if (player.PlayerState == PlayerState.Playing || player.PlayerState == PlayerState.Paused)
 			{
-				await _musicManager.Queue.Enqueue(selectedTrack, Context);
+				player.Queue.Enqueue(new Queueable
+				{
+					LavaTrack = selectedTrack,
+					TextChannel = Context.Channel as ITextChannel,
+					User = Context.User as IGuildUser
 
-				await _musicManager.QueueEmbed(selectedTrack, Context);
+				});
+
+				await _musicManager.QueueEmbed(new Queueable { LavaTrack = selectedTrack, TextChannel = Context.Channel as ITextChannel, User = Context.User as IGuildUser}, player);
 			}
 			else
 			{
@@ -262,19 +266,26 @@ namespace DiscordNET.Modules
 				return;
 			}
 
-			if (count > await _musicManager.Queue.GetQueueCount())
+			if (count > player.Queue.Count)
 			{
 				await Context.Channel.SendMessageAsync("Not Enough Items to Skip");
 				return;
 			}
 
-			List<QueueTrack> tracks = await _musicManager.Queue.GetItems();
-			QueueTrack track = tracks.ElementAt(count - 1);
+			if (count == 1)
+			{
+				player.Queue.TryDequeue(out Queueable queueable);
+				await player.PlayAsync(queueable.LavaTrack);
+				await _musicManager.MusicEmbed(queueable);
+			}
+			else
+			{
+				player.Queue.RemoveRange(0, count - 2);
+				player.Queue.TryDequeue(out Queueable track);
 
-			await _musicManager.Queue.Remove(count);
-
-			await player.PlayAsync(track.Track);
-			await _musicManager.MusicEmbed(track);
+				await player.PlayAsync(track.LavaTrack);
+				await _musicManager.MusicEmbed(track);
+			}
 		}
 
 		[Command("resume")]
@@ -289,18 +300,12 @@ namespace DiscordNET.Modules
 
 			if (player.PlayerState != PlayerState.Paused && player.PlayerState != PlayerState.Stopped)
 			{
-				if (await _musicManager.Queue.GetQueueCount() != 0)
+				if (player.Queue.Count != 0)
 				{
-					List<QueueTrack> list = await _musicManager.Queue.GetItems();
-
-					QueueTrack trackCollection = list.FirstOrDefault();
-
-					bool result = await _musicManager.Queue.TryDequeue(trackCollection.Track);
-
-					if (result)
+					if(player.Queue.TryDequeue(out Queueable track))
 					{
-						await player.PlayAsync(trackCollection.Track);
-						await _musicManager.MusicEmbed(trackCollection);
+						await player.PlayAsync(track.LavaTrack);
+						await _musicManager.MusicEmbed(track);
 					}
 					return;
 				}
@@ -412,7 +417,7 @@ namespace DiscordNET.Modules
 				return;
 			}
 			await player.StopAsync();
-			await _musicManager.Queue.Dispose();
+			player.Queue.Clear();
 		}
 
 		[Command("lyrics")]
@@ -488,25 +493,25 @@ namespace DiscordNET.Modules
 		[Summary("Get a listing of the queue")]
 		public async Task Queue ()
 		{
-			QueueHandler queue = _musicManager.Queue;
-			List<QueueTrack> items = await queue.GetItems();
+			_lavaNode.TryGetPlayer(Context.Guild, out LavaPlayer player);
+			IEnumerable<Queueable> list = player.Queue.Items;
 
 			List<string> description = new List<string>();
 
-			if (items.Count > 10)
+			if (list.Count() > 10)
 			{
 				for (int i = 0; i < 10; i++)
 				{
-					QueueTrack trackCollection = items[i];
-					description.Add($"**{i + 1}.** `{trackCollection.Track.Title}` [{trackCollection.Track.Duration}] Added by: {trackCollection.User.Username}");
+					Queueable trackCollection = list.ElementAt(i);
+					description.Add($"**{i + 1}.** `{trackCollection.LavaTrack.Title}` [{trackCollection.LavaTrack.Duration}] Added by: {trackCollection.User.Username}");
 				}
 			}
-			else if (items.Count > 0)
+			else if (list.Count() > 0)
 			{
 				int count = 1;
-				foreach (QueueTrack trackCollection in items)
+				foreach (Queueable trackCollection in list)
 				{
-					description.Add($"**{count}.** `{trackCollection.Track.Title}` [{trackCollection.Track.Duration}] Added by: {trackCollection.User.Username}");
+					description.Add($"**{count}.** `{trackCollection.LavaTrack.Title}` [{trackCollection.LavaTrack.Duration}] Added by: {trackCollection.User.Username}");
 					count++;
 				}
 			}
@@ -521,7 +526,7 @@ namespace DiscordNET.Modules
 				Description = string.Join("\n", description),
 				Footer = new EmbedFooterBuilder
 				{
-					Text = $"Number of Tracks: {items.Count}"
+					Text = $"Number of Tracks: {list.Count()}"
 				},
 				Color = Color.DarkPurple
 			}.Build();
