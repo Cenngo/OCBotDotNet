@@ -16,6 +16,7 @@ using Victoria.Responses.Rest;
 using DiscordNET.Handlers;
 using Discord.WebSocket;
 using DiscordNET.Data.Genius;
+using DiscordNET.Data;
 
 namespace DiscordNET.Modules
 {
@@ -135,23 +136,17 @@ namespace DiscordNET.Modules
 				case LoadStatus.PlaylistLoaded:
 					foreach (LavaTrack track in results.Tracks)
 					{
-						await _musicManager.Queue.Enqueue(track, Context);
+						player.Queue.Enqueue(new LavaTrackWithUser(track, Context.User, Context.Channel));
 					}
 
 					await _musicManager.PlaylistEmbed(query, Context);
 
 					if (player.PlayerState != PlayerState.Playing && player.PlayerState != PlayerState.Paused)
 					{
-						List<QueueTrack> list = await _musicManager.Queue.GetItems();
-
-						QueueTrack trackCollection = list.FirstOrDefault();
-
-						bool result = await _musicManager.Queue.TryDequeue(trackCollection.Track);
-
-						if (result)
+						if(player.Queue.TryDequeue(out var track))
 						{
-							await player.PlayAsync(trackCollection.Track);
-							await _musicManager.MusicEmbed(trackCollection);
+							await player.PlayAsync(((LavaTrackWithUser) track).Track);
+							await _musicManager.MusicEmbed(((LavaTrackWithUser)track));
 						}
 						return;
 					}
@@ -216,9 +211,10 @@ namespace DiscordNET.Modules
 
 			if (player.PlayerState == PlayerState.Playing || player.PlayerState == PlayerState.Paused)
 			{
-				await _musicManager.Queue.Enqueue(selectedTrack, Context);
+				player.Queue.Enqueue(new LavaTrackWithUser(selectedTrack, Context.User, Context.Channel));
 
-				await _musicManager.QueueEmbed(selectedTrack, Context);
+				await _musicManager.QueueEmbed(new LavaTrackWithUser(selectedTrack, Context.User, Context.Channel),
+					player.Queue.Items.Count());
 			}
 			else
 			{
@@ -262,19 +258,23 @@ namespace DiscordNET.Modules
 				return;
 			}
 
-			if (count > await _musicManager.Queue.GetQueueCount())
+			if (count > player.Queue.Count)
 			{
 				await Context.Channel.SendMessageAsync("Not Enough Items to Skip");
 				return;
 			}
 
-			List<QueueTrack> tracks = await _musicManager.Queue.GetItems();
-			QueueTrack track = tracks.ElementAt(count - 1);
+			if (count == 1)
+			{
+				await player.SkipAsync();
+			}
+			else
+			{
+				player.Queue.RemoveRange(0, count - 2);
+				await _musicManager.MusicEmbed(((IEnumerable<LavaTrackWithUser>) player.Queue.Items).First());
 
-			await _musicManager.Queue.Remove(count);
-
-			await player.PlayAsync(track.Track);
-			await _musicManager.MusicEmbed(track);
+				await player.SkipAsync();
+			}
 		}
 
 		[Command("resume")]
@@ -287,29 +287,6 @@ namespace DiscordNET.Modules
 				return;
 			}
 
-			if (player.PlayerState != PlayerState.Paused && player.PlayerState != PlayerState.Stopped)
-			{
-				if (await _musicManager.Queue.GetQueueCount() != 0)
-				{
-					List<QueueTrack> list = await _musicManager.Queue.GetItems();
-
-					QueueTrack trackCollection = list.FirstOrDefault();
-
-					bool result = await _musicManager.Queue.TryDequeue(trackCollection.Track);
-
-					if (result)
-					{
-						await player.PlayAsync(trackCollection.Track);
-						await _musicManager.MusicEmbed(trackCollection);
-					}
-					return;
-				}
-				else
-				{
-					await ReplyAsync("Nothing is paused rigth now");
-					return;
-				}
-			}
 
 			await player.ResumeAsync();
 		}
@@ -488,45 +465,48 @@ namespace DiscordNET.Modules
 		[Summary("Get a listing of the queue")]
 		public async Task Queue ()
 		{
-			QueueHandler queue = _musicManager.Queue;
-			List<QueueTrack> items = await queue.GetItems();
-
-			List<string> description = new List<string>();
-
-			if (items.Count > 10)
+			if (_lavaNode.TryGetPlayer(Context.Guild, out LavaPlayer player))
 			{
-				for (int i = 0; i < 10; i++)
+
+				var Queue = player.Queue.Items;
+
+				List<string> description = new List<string>();
+
+				if (Queue.Count() > 10)
 				{
-					QueueTrack trackCollection = items[i];
-					description.Add($"**{i + 1}.** `{trackCollection.Track.Title}` [{trackCollection.Track.Duration}] Added by: {trackCollection.User.Username}");
+					for (int i = 0; i < 10; i++)
+					{
+						var track = (LavaTrackWithUser)Queue?.ElementAt(i);
+						description.Add($"**{i + 1}.** `{track.Track.Title}` [{track.Track.Duration}] Added by: {track.User.Username}");
+					}
 				}
-			}
-			else if (items.Count > 0)
-			{
-				int count = 1;
-				foreach (QueueTrack trackCollection in items)
+				else if (Queue.Count() > 0)
 				{
-					description.Add($"**{count}.** `{trackCollection.Track.Title}` [{trackCollection.Track.Duration}] Added by: {trackCollection.User.Username}");
-					count++;
+					int count = 1;
+					foreach (var track in Queue)
+					{
+						description.Add($"**{count}.** `{((LavaTrackWithUser)track).Track.Title}` [{((LavaTrackWithUser)track).Track.Duration}] Added by: {((LavaTrackWithUser)track).User.Username}");
+						count++;
+					}
 				}
-			}
-			else
-			{
-				await Context.Channel.SendMessageAsync("There are no tracks in the queue.");
-			}
-
-			Embed queueEmbed = new EmbedBuilder
-			{
-				Title = $"Queue for {Context.Guild.Name}",
-				Description = string.Join("\n", description),
-				Footer = new EmbedFooterBuilder
+				else
 				{
-					Text = $"Number of Tracks: {items.Count}"
-				},
-				Color = Color.DarkPurple
-			}.Build();
+					await Context.Channel.SendMessageAsync("There are no tracks in the queue.");
+				}
 
-			await Context.Channel.SendMessageAsync(embed: queueEmbed);
+				Embed queueEmbed = new EmbedBuilder
+				{
+					Title = $"Queue for {Context.Guild.Name}",
+					Description = string.Join("\n", description),
+					Footer = new EmbedFooterBuilder
+					{
+						Text = $"Number of Tracks: {Queue.Count()}"
+					},
+					Color = Color.DarkPurple
+				}.Build();
+
+				await Context.Channel.SendMessageAsync(embed: queueEmbed);
+			}
 		}
 	}
 }

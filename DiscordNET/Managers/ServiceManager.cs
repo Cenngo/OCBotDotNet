@@ -18,6 +18,7 @@ namespace DiscordNET.Managers
 		private readonly LiteDatabase _botDB;
 		private readonly LiteCollection<GuildConfig> _guildConfig;
 		private readonly LavaConfig _lavaConfig;
+		private readonly LavaNode _lavaNode;
 		public ServiceManager ( DiscordShardedClient client = null, CommandService commands = null )
 		{
 			_client = client ?? new DiscordShardedClient();
@@ -29,8 +30,10 @@ namespace DiscordNET.Managers
 				LogSeverity = Discord.LogSeverity.Debug,
 				ResumeTimeout = new TimeSpan(0, 2, 0),
 				SelfDeaf = false,
-				EnableResume = true
+				EnableResume = true,
+				Port=25565
 			};
+			_lavaNode = new LavaNode(_client, _lavaConfig);
 		}
 
 		public IServiceProvider BuildServiceProvider () => new ServiceCollection()
@@ -41,7 +44,7 @@ namespace DiscordNET.Managers
 			.AddSingleton<CommandHandler>()
 			.AddSingleton<InteractiveService>()
 			.AddSingleton(_lavaConfig)
-			.AddSingleton<LavaNode>()
+			.AddSingleton(_lavaNode)
 			.AddSingleton<MusicManager>()
 			.BuildServiceProvider();
 	}
