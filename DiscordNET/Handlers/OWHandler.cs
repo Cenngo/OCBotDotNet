@@ -9,7 +9,14 @@ namespace DiscordNET.Handlers
 {
     public class Overwatch
     {
-        public async Task<OWInfo> RetrieveUserStats(string battleTag, string region, string platform)
+        /// <summary>
+        /// Retrieves all user stats from ow-api.com 
+        /// </summary>
+        /// <param name="battleTag">Battle.net tag of user</param>
+        /// <param name="platform">Platform (pc, psn, bxl)</param>
+        /// <param name="region">Region (eu, na, asia)</param>
+        /// <returns>Stats type of <c>OWInfo</c></returns>
+        public async Task<OWInfo> RetrieveUserStats(string battleTag, string platform, string region)
         {
             string userName = battleTag.Replace("#", "-");
             string html = string.Empty;
@@ -24,6 +31,12 @@ namespace DiscordNET.Handlers
             OWInfo stats = JsonConvert.DeserializeObject<OWInfo>(html);
             return stats;
         }
+
+        /// <summary>
+        /// Sorts best hero by winrate/games won
+        /// </summary>
+        /// <param name="AllHeroes">Dictionary of hereos</param>
+        /// <returns>Best <c>OwHero</c></returns>
         public async Task<string> SortHero(Dictionary<string, OwHero> AllHeroes)
         {
             int mostValue = 0;
