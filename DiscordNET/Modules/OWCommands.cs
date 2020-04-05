@@ -30,6 +30,9 @@ namespace DiscordNET.Modules
             {
                 Overwatch OW = new Overwatch();
                 OWInfo stats = await OW.RetrieveUserStats(battleTag, platform, region);
+                string prestige;
+                if (stats.Prestige == 0) prestige = string.Empty;
+                else prestige = stats.Prestige.ToString();
              
                 if (!stats.Priv){
                     Dictionary<string, OwHero> comp = stats.CompStats.AllHeroes;
@@ -43,7 +46,7 @@ namespace DiscordNET.Modules
                         //Color = rankColor,
                         ThumbnailUrl = stats.IconURL
                     }                    
-                    .AddField("Level", stats.Prestige.ToString() + stats.Level.ToString(), true)
+                    .AddField("Level", prestige + stats.Level.ToString(), true)
                     .AddField("Endorsement", stats.Endorsement, true)
                     .AddBlankField()
                     .AddField("Best Competitive Hero", bestComp.CaptFirst(), false)
@@ -59,7 +62,7 @@ namespace DiscordNET.Modules
                         //Color = rankColor,
                         ThumbnailUrl = stats.IconURL
                     }
-                    .AddField("Level", stats.Prestige.ToString() + stats.Level.ToString(), true)
+                    .AddField("Level", prestige + stats.Level.ToString(), true)
                     .AddField("Endorsement", stats.Endorsement, true)
                     .WithAuthor("Profile Summary").WithDescription("This profile is private")
                     .Build();   
