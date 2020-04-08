@@ -77,7 +77,7 @@ namespace DiscordNET.Modules
 
 					foreach (ParameterInfo param in command.Command.Parameters)
 					{
-						paramString.AppendLine($"`<{param.Name}>` {param.Type} - **Default:** *{param.DefaultValue ?? "null"}* -> {param.Summary ?? "`no context`"}");
+						paramString.AppendLine($"`<{param.Name}>` {param.Type.Name} - **Default:** *{param.DefaultValue ?? "null"}* -> {param.Summary ?? "`no context`"}");
 					}
 					helpEmbed.AddField("Parameters", paramString.ToString());
 				}

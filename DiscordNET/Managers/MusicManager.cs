@@ -20,13 +20,11 @@ namespace DiscordNET.Managers
 	{
 		private readonly DiscordShardedClient _client;
 		private readonly LavaNode _lavaNode;
-		public QueueHandler Queue;
 
-		public MusicManager ( DiscordShardedClient client, LavaNode lavaNode, QueueHandler queue = null )
+		public MusicManager ( DiscordShardedClient client, LavaNode lavaNode )
 		{
 			_client = client;
 			_lavaNode = lavaNode;
-			Queue = queue ?? new QueueHandler(_lavaNode, _client);
 			CheckVoiceChannel().GetAwaiter();
 
 			_client.ShardReady += OnReady;
@@ -203,34 +201,6 @@ namespace DiscordNET.Managers
 			Embed msg = embed.Build();
 
 			await (lavatrack.Channel as ISocketMessageChannel).SendMessageAsync(embed: msg);
-		}
-
-		public async Task QueueEmbed ( LavaTrack track, ShardedCommandContext context )
-		{
-			string videoId = track.Url.Substring(track.Url.Length - 11);
-			string thumbnailUrl = $"https://i.ytimg.com/vi/{videoId}/hqdefault.jpg";
-
-			int queueLength = await Queue.GetQueueCount();
-
-			EmbedBuilder embed = new EmbedBuilder
-			{
-				Title = track.Title,
-				Url = track.Url,
-				Color = Color.DarkPurple,
-				ThumbnailUrl = thumbnailUrl,
-				Author = new EmbedAuthorBuilder
-				{
-					IconUrl = context.User.GetAvatarUrl(),
-					Name = "Added to Queue"
-				}
-			}
-			.AddField("Queue Order", queueLength, true)
-			.AddField("Channel", track.Author, true)
-			.AddField("Duration", track.Duration.ToString(), true);
-
-			Embed msg = embed.Build();
-
-			await context.Channel.SendMessageAsync(embed: msg);
 		}
 
 		public async Task PlaylistEmbed ( string query, ShardedCommandContext context )

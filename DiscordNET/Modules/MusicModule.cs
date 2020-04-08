@@ -31,7 +31,7 @@ namespace DiscordNET.Modules
 			_musicManager = musicManager;
 			_lavaNode = lavaNode;
 		}
-
+		
 		[Command("Join")]
 		[Summary("Create a music player instance and summon it to your current voice channel")]
 		public async Task Join ()
@@ -389,7 +389,7 @@ namespace DiscordNET.Modules
 				return;
 			}
 			await player.StopAsync();
-			await _musicManager.Queue.Dispose();
+			player.Queue.Clear();
 		}
 
 		[Command("lyrics")]

@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using DiscordNET.Data;
 using DiscordNET.Data.Playlist;
 using DiscordNET.Handlers;
 using DiscordNET.Managers;
@@ -36,47 +37,49 @@ namespace DiscordNET.Modules
 		[Command("Add"), Summary("Register the current queue as a playlist")]
 		public async Task AddPlaylist(string name)
 		{
-			List<QueueTrack> queue = await _musicManager.Queue.GetItems();
-			if(_playlistCollection.Exists(x => x.GuildId == Context.Guild.Id && x.Playlists.Exists(x => x.Name == name)))
+			if(_lavaNode.TryGetPlayer(Context.Guild, out var player))
 			{
-				await ReplyAsync("Playlist with the given name already exists");
-				return;
-			}
-			
-			List<LavaTrack> list = new List<LavaTrack>();
-			LavaPlayer player = _lavaNode.GetPlayer(Context.Guild);
-
-			list.Add(player.Track);
-
-			foreach (QueueTrack item in queue)
-			{
-				list.Add(item.Track);
-			}
-	
-			DBList playlist = new DBList
-			{
-				Name = name,
-				Playlist = list
-			};
-
-			if(_playlistCollection.Exists(x => x.GuildId == Context.Guild.Id))
-			{
-				DBPlaylistGuild guild = _playlistCollection.FindOne(x => x.GuildId == Context.Guild.Id);
-				guild.Playlists.Add(playlist);
-				_playlistCollection.Update(guild);
-			}
-			else
-			{
-				_playlistCollection.Insert(new DBPlaylistGuild
+				var queue = player.Queue.Items;
+				if (_playlistCollection.Exists(x => x.GuildId == Context.Guild.Id && x.Playlists.Exists(x => x.Name == name)))
 				{
-					GuildId = Context.Guild.Id,
-					Playlists = new List<DBList> { playlist }
-				});
+					await ReplyAsync("Playlist with the given name already exists");
+					return;
+				}
+
+				List<LavaTrack> list = new List<LavaTrack>();
+
+				list.Add(player.Track);
+
+				foreach (var item in queue)
+				{
+					list.Add(((LavaTrackWithUser) item).Track);
+				}
+
+				DBList playlist = new DBList
+				{
+					Name = name,
+					Playlist = list
+				};
+
+				if (_playlistCollection.Exists(x => x.GuildId == Context.Guild.Id))
+				{
+					DBPlaylistGuild guild = _playlistCollection.FindOne(x => x.GuildId == Context.Guild.Id);
+					guild.Playlists.Add(playlist);
+					_playlistCollection.Update(guild);
+				}
+				else
+				{
+					_playlistCollection.Insert(new DBPlaylistGuild
+					{
+						GuildId = Context.Guild.Id,
+						Playlists = new List<DBList> { playlist }
+					});
+				}
+
+
+
+				await ReplyAsync("Playlist Added");
 			}
-			
-
-
-			await ReplyAsync("Playlist Added");
 		}
 
 		[Command("Load"), Summary("Load a playlist to the queue")]
@@ -86,7 +89,14 @@ namespace DiscordNET.Modules
 			{
 				DBPlaylistGuild guild = _playlistCollection.FindOne(x => x.GuildId == Context.Guild.Id);
 				DBList playlist = guild.Playlists.Find(x => x.Name.ToLower() == name.ToLower());
-				await _musicManager.Queue.EnqueueBulk(playlist.Playlist, Context);
+
+				if (_lavaNode.TryGetPlayer(Context.Guild, out var player))
+				{
+					foreach(var track in playlist.Playlist)
+					{
+						player.Queue.Enqueue(new LavaTrackWithUser(track, Context.User, Context.Channel));
+					}
+				}
 				await ReplyAsync("Playlist Loaded");
 			}
 			catch (Exception)

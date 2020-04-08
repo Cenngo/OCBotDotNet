@@ -17,7 +17,7 @@ namespace DiscordNET.Handlers
 		public async Task<R6NameSearch> ParseByName(string username, string platform)
 		{
 			string html = string.Empty;
-			string url = @$"https://r6tab.com/api/search.php?platform={platform}&search={username}";
+			string url = @$"https://r6.apitab.com/search/{platform}/{username}";
 			HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
 			request.Method = "GET";
 			request.ContentType = "application/json";
@@ -25,9 +25,9 @@ namespace DiscordNET.Handlers
 			using (Stream stream = response.GetResponseStream())
 			using (StreamReader sr = new StreamReader(stream))
 				html = sr.ReadToEnd();
-
-			R6NameSearch result = JsonConvert.DeserializeObject<R6NameSearch>(html);
-			return result;
+			Console.WriteLine(html);
+			var result = JsonConvert.DeserializeObject<R6PlayerDataByName>(html);
+			return new R6NameSearch();
 		}
 
 		public async Task<R6IdSearch> ParseById(string userId)

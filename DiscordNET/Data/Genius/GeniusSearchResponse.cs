@@ -6,6 +6,9 @@ using System.Text.Json.Serialization;
 
 namespace DiscordNET.Data.Genius
 {
+	/// <summary>
+	/// Complete Search Response for Genius Query
+	/// </summary>
 	public struct GeniusSearchResponse
 	{
 		[JsonProperty("meta")]
@@ -13,12 +16,19 @@ namespace DiscordNET.Data.Genius
 		[JsonProperty("response")]
 		public GSResponse Response { get; set; }
 	}
+
+	/// <summary>
+	/// Meta Data of the Response
+	/// </summary>
 	public struct GSMeta
 	{
 		[JsonProperty("status")]
 		public int Status { get; set; }
 	}
-
+	
+	/// <summary>
+	/// Data Part of the Genius Query Response
+	/// </summary>
 	public struct GSResponse
 	{
 		[JsonProperty("hits")]
@@ -32,6 +42,7 @@ namespace DiscordNET.Data.Genius
 		[JsonProperty("result")]
 		public GSResult Result { get; set; }
 	}
+
 
 	public struct GSResult
 	{
