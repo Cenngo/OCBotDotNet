@@ -266,14 +266,15 @@ namespace DiscordNET.Modules
 
 			if (count == 1)
 			{
-				await player.SkipAsync();
+				await player.PlayAsync((player.Queue.Items.First() as LavaTrackWithUser).Track);
+				await _musicManager.MusicEmbed(player.Queue.Items.ElementAt(0) as  LavaTrackWithUser);
+				player.Queue.RemoveAt(0);
 			}
 			else
 			{
-				player.Queue.RemoveRange(0, count - 2);
+				await player.PlayAsync((player.Queue.Items.ElementAt(count - 1) as LavaTrackWithUser).Track);
+				player.Queue.RemoveRange(0, count - 1);
 				await _musicManager.MusicEmbed(((IEnumerable<LavaTrackWithUser>) player.Queue.Items).First());
-
-				await player.SkipAsync();
 			}
 		}
 
