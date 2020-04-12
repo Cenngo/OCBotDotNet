@@ -9,28 +9,41 @@ namespace DiscordNET.Handlers
 {
     public class Overwatch
     {
-        public async Task<OWInfo> RetrieveUserStats(string battleTag, string region, string platform)
+        /// <summary>
+        /// Retrieves all user stats from ow-api.com 
+        /// </summary>
+        /// <param name="battleTag">Battle.net tag of user</param>
+        /// <param name="platform">Platform (pc, psn, bxl)</param>
+        /// <param name="region">Region (eu, na, asia)</param>
+        /// <returns>Stats type of <c>OWInfo</c></returns>
+        public async Task<OWInfo> RetrieveUserStats(string battleTag, string platform, string region)
         {
-            var userName = battleTag.Replace("#", "-");
-            var html = string.Empty;
-            var url = $"https://ow-api.com/v1/stats/{platform}/{region}/{userName}/complete";
+            string userName = battleTag.Replace("#", "-");
+            string html = string.Empty;
+            string url = $"https://ow-api.com/v1/stats/{platform}/{region}/{userName}/complete";
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
             request.Method = "GET";
             request.ContentType = "application/json";
             using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
-            using (var stream = response.GetResponseStream())
-            using (var sr = new StreamReader(stream))
+            using (Stream stream = response.GetResponseStream())
+            using (StreamReader sr = new StreamReader(stream))
                 html = sr.ReadToEnd();
-            var stats = JsonConvert.DeserializeObject<OWInfo>(html);
+            OWInfo stats = JsonConvert.DeserializeObject<OWInfo>(html);
             return stats;
         }
-        public async Task<string> SortHero(Dictionary<string, OwHero> comp)
+
+        /// <summary>
+        /// Sorts best hero by winrate/games won
+        /// </summary>
+        /// <param name="AllHeroes">Dictionary of hereos</param>
+        /// <returns>Best <c>OwHero</c></returns>
+        public async Task<string> SortHero(Dictionary<string, OwHero> AllHeroes)
         {
             int mostValue = 0;
             string best = string.Empty;
-            foreach (var i in comp)
+            foreach (KeyValuePair<string, OwHero> i in AllHeroes)
             {
-                var avg = i.Value.GamesWon * i.Value.WinPercentage;
+                int avg = i.Value.GamesWon * i.Value.WinPercentage;
                 if (avg > mostValue)
                 {
                     mostValue = avg;

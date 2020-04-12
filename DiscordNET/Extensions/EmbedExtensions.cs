@@ -11,7 +11,7 @@ namespace DiscordNET.Extensions
 	{
 		public static EmbedBuilder AddBlankField (this EmbedBuilder builder)
 		{
-			var field = new EmbedFieldBuilder()
+			EmbedFieldBuilder field = new EmbedFieldBuilder()
 				.WithIsInline(false)
 				.WithName("\u200b")
 				.WithValue("\u200b");

@@ -1,20 +1,23 @@
-﻿using Discord.Commands;
+﻿using Discord;
+using Discord.Commands;
 using Discord.WebSocket;
 using DiscordNET.Data;
 using LiteDB;
 using Newtonsoft.Json;
 using Raven.Client.Documents.Smuggler;
+using Raven.Client.Exceptions.Database;
 using Raven.Client.Json.Converters;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace DiscordNET.Modules
 {
-	public class UtilityModule : ModuleBase<SocketCommandContext>
+	public class UtilityModule : ModuleBase<ShardedCommandContext>
 	{
 		private readonly DiscordShardedClient _client;
 		private readonly LiteDatabase _database;
@@ -28,7 +31,7 @@ namespace DiscordNET.Modules
 		}
 
 		[Command("delete")]
-		[RequireUserPermission(Discord.GuildPermission.ManageMessages)]
+		[RequireUserPermission(GuildPermission.ManageMessages)]
 		[Summary("Deletes Messages")]
 		public async Task Delete ( int count = 1 )
 		{
@@ -38,10 +41,10 @@ namespace DiscordNET.Modules
 				return;
 			}
 
-			var messages = Context.Channel.GetMessagesAsync(count);
+			var messages = await Context.Channel.GetMessagesAsync(count).FlattenAsync();
+			SocketTextChannel channel = Context.Channel as SocketTextChannel;
 
-			//FIX BUG: No Method found for bulk deletion
-			//await Context.Channel.DeleteMessagesAsync(messages);
+			await channel.DeleteMessagesAsync(messages);
 		}
 
 		[Command("dice")]
@@ -49,51 +52,23 @@ namespace DiscordNET.Modules
 		[Alias("random")]
 		public async Task Dice ( int maxValue = 6 )
 		{
-			var random = new Random(Convert.ToInt32(DateTime.UnixEpoch));
+			Random random = new Random(DateTime.Now.Second);
 
-			await Context.Channel.SendMessageAsync(random.Next().ToString());
-		}
-		[Command("insult")]
-		public async Task InsultMention()
-		{
-			//Feature: insult multiple users
-			if (Context.Message.MentionedUsers.Count > 1)
-				throw new InvalidOperationException("You should mention only one user");
+			int randomNumber = random.Next(1, maxValue);
 
-			UserCollection userData = JsonConvert.DeserializeObject<UserCollection>(File.ReadAllText("users.json"));
-
-			IReadOnlyCollection<SocketUser> mentioned = Context.Message.MentionedUsers;
-
-			var insults = JsonConvert.DeserializeObject<Insult>(File.ReadAllText("insults.json"));
-
-			var InsultLanguage = new Dictionary<string, List<String>>
-			{
-				{"tr", insults.TR_insults},
-				{"en", insults.EN_insults }
-			};
-
-			foreach (SocketUser user in mentioned)
-			{
-				var userMatch = userData.userList.FirstOrDefault(x => x.discordID == user.Id);
-				var randomN = new Random();
-
-				string userLang = userMatch.langauge;
-				List<string> listOfInsults = InsultLanguage[userLang];
-				string anan = InsultLanguage[userMatch.langauge.ToLower()][randomN.Next(0, insults.TR_insults.Count)];
-				await ReplyAsync(anan+" "+user.Mention);
-			}
-			await Context.Message.DeleteAsync();
+			await ReplyAsync(randomNumber.ToString());
 		}
 
-		[Command("list prefix")]
+		[Command("prefix list")]
+		[Summary("List all of the prefixes that are resgistered under the current guild")]
 		public async Task ListPrefixes()
 		{
-			var currentConfig = _guildConfig.FindOne(x => x.GuildId == Context.Guild.Id);
-			var prefixes = currentConfig.Prefix;
+			GuildConfig currentConfig = _guildConfig.FindOne(x => x.GuildId == Context.Guild.Id);
+			List<string> prefixes = currentConfig.Prefix;
 
-			var replyString = new StringBuilder();
+			StringBuilder replyString = new StringBuilder();
 
-			foreach(var item in prefixes)
+			foreach(string item in prefixes)
 			{
 				replyString.Append(string.Concat("`", item, "`\t"));
 			}
@@ -101,33 +76,43 @@ namespace DiscordNET.Modules
 			await ReplyAsync(replyString.ToString());
 		}
 
-		[Command("add prefix")]
-		public async Task AddPrefix (string prefix)
+		[Command("prefix add")]
+		[Summary("Register a new prefix under the current guild")]
+		public async Task AddPrefix ([Summary("Prefix to Add")]string prefix)
 		{
-			var currentConfig = _guildConfig.FindOne(x => x.GuildId == Context.Guild.Id);
+			GuildConfig currentConfig = _guildConfig.FindOne(x => x.GuildId == Context.Guild.Id);
 
 			currentConfig.Prefix.Add(prefix);
 			_guildConfig.Update(currentConfig);
 			await ReplyAsync($"Successfully Added `{prefix}` prefix");
 		}
 
-		[Command("remove prefix")]
-		public async Task RemovePrefix ( string prefix )
+		[Command("prefix remove")]
+		[Summary("Remove a prefix from the valid prefix list registered under the current guild")]
+		public async Task RemovePrefix ( [Summary("Prefix to Remove")]string prefix )
 		{
-			var currentConfig = _guildConfig.FindOne(x => x.GuildId == Context.Guild.Id);
+			if(_guildConfig.FindOne(x => x.GuildId == Context.Guild.Id).Prefix.Count <= 1)
+			{
+				await ReplyAsync("You cannot have less than 1 prefix registered to the guild.");
+				return;
+			}
+
+			GuildConfig currentConfig = _guildConfig.FindOne(x => x.GuildId == Context.Guild.Id);
 
 			if (!currentConfig.Prefix.Remove(prefix))
 			{
+				await ReplyAsync("An Error Has Occured During Removel Process!");
 				return;
 			}
 			_guildConfig.Update(currentConfig);
 			await ReplyAsync($"Successfully Removed `{prefix}` prefix");
 		}
 
-		[Command("set irritate")]
-		public async Task SetIrritate (bool state)
+		[Command("irritate set")]
+		[Summary("Set the Irritation Mode")]
+		public async Task SetIrritate ([Summary("True / False")]bool state)
 		{
-			var currentConfig = _guildConfig.FindOne(x => x.GuildId == Context.Guild.Id);
+			GuildConfig currentConfig = _guildConfig.FindOne(x => x.GuildId == Context.Guild.Id);
 
 			currentConfig.Irritate = state;
 			_guildConfig.Update(currentConfig);
@@ -135,18 +120,19 @@ namespace DiscordNET.Modules
 		}
 
 		[Command("whitelist add")]
-		public async Task AddWhitelist(params string[] mentions)
+		[Summary("Add a Person to the whitelist to be excluded from bot activities that are meant to irritate people")]
+		public async Task AddWhitelist([Summary("Mention the users to be effected by the change")]params string[] mentions)
 		{
-			var currentConfig = _guildConfig.FindOne(x => x.GuildId == Context.Guild.Id);
+			GuildConfig currentConfig = _guildConfig.FindOne(x => x.GuildId == Context.Guild.Id);
 
-			var mentionedUsers = Context.Message.MentionedUsers;
+			IReadOnlyCollection<SocketUser> mentionedUsers = Context.Message.MentionedUsers;
 
-			var successString = new StringBuilder();
-			var conflictString = new StringBuilder();
+			StringBuilder successString = new StringBuilder();
+			StringBuilder conflictString = new StringBuilder();
 
-			foreach (var user in mentionedUsers)
+			foreach (SocketUser user in mentionedUsers)
 			{
-				var userId = string.Join(" ", user.Username, user.Discriminator);
+				string userId = string.Join(" ", user.Username, user.Discriminator);
 
 				if (currentConfig.WhiteList.Exists(x => x == userId))
 				{
@@ -165,14 +151,15 @@ namespace DiscordNET.Modules
 		}
 
 		[Command("whitelist list")]
+		[Summary("List the Current guild whitelist")]
 		public async Task ListWhitelist()
 		{
-			var currentConfig = _guildConfig.FindOne(x => x.GuildId == Context.Guild.Id);
-			var whitelist = currentConfig.WhiteList;
+			GuildConfig currentConfig = _guildConfig.FindOne(x => x.GuildId == Context.Guild.Id);
+			List<string> whitelist = currentConfig.WhiteList;
 
-			var replyString = new StringBuilder();
+			StringBuilder replyString = new StringBuilder();
 
-			foreach (var user in whitelist)
+			foreach (string user in whitelist)
 			{
 				replyString.Append(string.Concat("`", user, "`\n"));
 			}
@@ -181,18 +168,19 @@ namespace DiscordNET.Modules
 		}
 
 		[Command("whitelist remove")]
-		public async Task RemoveWhitelist ( params string[] mentions )
+		[Summary("Remove a Person to the whitelist to be excluded from bot activities that are meant to irritate people")]
+		public async Task RemoveWhitelist ( [Summary("Mention the users to be effected by the change")]params string[] mentions )
 		{
-			var currentConfig = _guildConfig.FindOne(x => x.GuildId == Context.Guild.Id);
+			GuildConfig currentConfig = _guildConfig.FindOne(x => x.GuildId == Context.Guild.Id);
 
-			var mentionedUsers = Context.Message.MentionedUsers;
+			IReadOnlyCollection<SocketUser> mentionedUsers = Context.Message.MentionedUsers;
 
-			var successString = new StringBuilder();
-			var conflictString = new StringBuilder();
+			StringBuilder successString = new StringBuilder();
+			StringBuilder conflictString = new StringBuilder();
 
-			foreach (var user in mentionedUsers)
+			foreach (SocketUser user in mentionedUsers)
 			{
-				var userId = string.Join(" ", user.Username, user.Discriminator);
+				string userId = string.Join(" ", user.Username, user.Discriminator);
 
 				if (!currentConfig.WhiteList.Exists(x => x == userId))
 				{

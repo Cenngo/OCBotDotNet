@@ -8,9 +8,9 @@ namespace DiscordNET.Data
     public struct UserCollection
     {
         [JsonProperty("Users")]
-        public List<userData> userList { get; set; }
+        public List<UserData> userList { get; set; }
     }
-    public class userData
+    public class UserData
     {
         //FIXME: non-private setters
         [JsonProperty("ID")]
