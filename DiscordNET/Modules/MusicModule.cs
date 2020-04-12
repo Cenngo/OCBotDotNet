@@ -258,6 +258,11 @@ namespace DiscordNET.Modules
 				return;
 			}
 
+			if(count == 1 && player.Queue.Count == 0 && player.PlayerState == PlayerState.Playing)
+			{
+				await player.StopAsync();
+			}
+
 			if (count > player.Queue.Count)
 			{
 				await Context.Channel.SendMessageAsync("Not Enough Items to Skip");

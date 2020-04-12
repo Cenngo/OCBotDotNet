@@ -32,4 +32,10 @@
     <Folder Include="Data\Overwatch\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="CSGO_Tracker.NET">
+      <HintPath>..\..\CSGO_Tracker.NET\CSGO_Tracker.NET\bin\Debug\netstandard2.1\CSGO_Tracker.NET.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>

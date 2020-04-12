@@ -62,9 +62,13 @@ namespace DiscordNET.Managers
 						{
 							await _lavaNode.LeaveAsync(voiceChannel);
 						}
+
+						if(player.VoiceChannel == guild.AFKChannel)
+							await _lavaNode.LeaveAsync(voiceChannel);
 					}
 				}
-				await Task.Delay(90000);
+
+				await Task.Delay(300000);
 			}
 		}
 
@@ -74,7 +78,6 @@ namespace DiscordNET.Managers
 
 			if (token.IsCancellationRequested)
 				return;
-
 		}
 
 		private Task OnTrackException ( TrackExceptionEventArgs arg )
