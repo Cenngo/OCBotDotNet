@@ -3,6 +3,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using DiscordNET.Data;
 using DiscordNET.Handlers;
+using R6Api.Models;
 using Raven.Client.ServerWide;
 using System;
 using System.Collections.Generic;
@@ -10,9 +11,12 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Timers;
 using Victoria;
+using Victoria.Enums;
 using Victoria.EventArgs;
 using Victoria.Responses.Rest;
+using Timer = System.Timers.Timer;
 
 namespace DiscordNET.Managers
 {
@@ -20,8 +24,11 @@ namespace DiscordNET.Managers
 	{
 		private readonly DiscordShardedClient _client;
 		private readonly LavaNode _lavaNode;
+		private Dictionary<LavaPlayer, DateTime> _playerTimeStamps;
+		private Timer Timer;
+		private int _cooldown;
 
-		public MusicManager ( DiscordShardedClient client, LavaNode lavaNode )
+		public MusicManager ( DiscordShardedClient client, LavaNode lavaNode, int? cooldown )
 		{
 			_client = client;
 			_lavaNode = lavaNode;
@@ -33,6 +40,41 @@ namespace DiscordNET.Managers
 			_lavaNode.OnLog += LavaNode_OnLog;
 			_lavaNode.OnTrackException += OnTrackException;
 			_lavaNode.OnPlayerUpdated += OnPLayerUpdate;
+
+			_cooldown = cooldown ?? 4;
+
+			_playerTimeStamps = new Dictionary<LavaPlayer, DateTime>();
+			Timer = new Timer(2000);
+			Timer.Elapsed += CheckCooldown;
+			Timer.Start();
+		}
+
+		private void CheckCooldown ( object sender, ElapsedEventArgs e )
+		{
+			foreach(var instance in _playerTimeStamps)
+			{
+				if (instance.Value + new TimeSpan(0, _cooldown, 0) < DateTime.Now)
+				{
+					_lavaNode.LeaveAsync(instance.Key.VoiceChannel);
+					_playerTimeStamps.Remove(instance.Key);
+				}
+			}
+
+			foreach(var player in _lavaNode.Players)
+			{
+				if (player.PlayerState != PlayerState.Playing)
+				{
+					if (!_playerTimeStamps.ContainsKey(player))
+					{
+						_playerTimeStamps.Add(player, DateTime.Now);
+					}
+				}
+				else if (player.PlayerState == PlayerState.Playing)
+				{
+					if (_playerTimeStamps.ContainsKey(player))
+						_playerTimeStamps.Remove(player);
+				}
+			}
 		}
 
 		private async Task OnPLayerUpdate ( PlayerUpdateEventArgs arg )
@@ -42,11 +84,24 @@ namespace DiscordNET.Managers
 			IEnumerable<IUser> users = await voiceChannel.GetUsersAsync().FlattenAsync();
 			if (users.Count(x => !x.IsBot) == 0)
 				await _lavaNode.LeaveAsync(arg.Player.VoiceChannel);
+
+			/*if(arg.Player.PlayerState == Victoria.Enums.PlayerState.Stopped || arg.Player.PlayerState == Victoria.Enums.PlayerState.Paused)
+			{
+				if (_playerTimeStamps.ContainsKey(arg.Player))
+					_playerTimeStamps.Remove(arg.Player);
+
+				_playerTimeStamps.Add(arg.Player, DateTime.Now);
+			}
+			else if(arg.Player.PlayerState == PlayerState.Playing)
+			{
+				if (_playerTimeStamps.ContainsKey(arg.Player))
+					_playerTimeStamps.Remove(arg.Player);
+			}*/
 		}
 
 		private async Task CheckVoiceChannel()
 		{
-			while (true)
+			/*while (true)
 			{
 				IEnumerable<SocketGuild> guilds = _client.Guilds;
 
@@ -63,22 +118,15 @@ namespace DiscordNET.Managers
 							await _lavaNode.LeaveAsync(voiceChannel);
 						}
 
-						if(player.VoiceChannel == guild.AFKChannel)
+						if (player.VoiceChannel == guild.AFKChannel)
 							await _lavaNode.LeaveAsync(voiceChannel);
 					}
 				}
 
-				await Task.Delay(300000);
-			}
+				await Task.Delay(60000);
+			}*/
 		}
 
-		private async Task AutomaticDisconnect(CancellationToken token)
-		{
-			await Task.Delay(300000, token);
-
-			if (token.IsCancellationRequested)
-				return;
-		}
 
 		private Task OnTrackException ( TrackExceptionEventArgs arg )
 		{
