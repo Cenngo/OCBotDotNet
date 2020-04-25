@@ -38,7 +38,8 @@ namespace DiscordNET.Modules
                 Description = player.PlatformInfo.UserHandle,
                 ThumbnailUrl = player.PlatformInfo.AvatarUrl,
                 Color = Color.Blue
-            };
+            }.Build();
+            await ReplyAsync(embed: msg);
         }
     }
 }

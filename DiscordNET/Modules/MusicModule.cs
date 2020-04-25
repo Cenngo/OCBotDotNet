@@ -32,6 +32,7 @@ namespace DiscordNET.Modules
 			_lavaNode = lavaNode;
 		}
 		
+		[RequireOwner]
 		[Command("Join")]
 		[Summary("Create a music player instance and summon it to your current voice channel")]
 		public async Task Join ()
@@ -166,6 +167,10 @@ namespace DiscordNET.Modules
 
 					Embed tracksEmbed = new EmbedBuilder()
 					{
+						Author = new EmbedAuthorBuilder
+						{
+							Name = "Write just the number of trak. Exp:\" 4 \""
+						},
 						Title = "Please Select the Desired Track",
 						Description = string.Join("\n", choice),
 						Color = Color.DarkPurple,

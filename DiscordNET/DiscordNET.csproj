@@ -7,6 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Data\RocketLeague\**" />
+    <EmbeddedResource Remove="Data\RocketLeague\**" />
+    <None Remove="Data\RocketLeague\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Discord.Addons.CommandsExtension" Version="1.0.4" />
     <PackageReference Include="Discord.Addons.Interactive" Version="1.0.1" />
     <PackageReference Include="Discord.Addons.InteractiveCommands" Version="1.2.4" />
@@ -28,7 +34,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Data\RocketLeague\" />
     <Folder Include="Data\Overwatch\" />
   </ItemGroup>
 

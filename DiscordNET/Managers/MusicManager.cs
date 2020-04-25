@@ -26,13 +26,11 @@ namespace DiscordNET.Managers
 		private readonly LavaNode _lavaNode;
 		private Dictionary<LavaPlayer, DateTime> _playerTimeStamps;
 		private Timer Timer;
-		private int _cooldown;
 
-		public MusicManager ( DiscordShardedClient client, LavaNode lavaNode, int? cooldown )
+		public MusicManager ( DiscordShardedClient client, LavaNode lavaNode )
 		{
 			_client = client;
 			_lavaNode = lavaNode;
-			CheckVoiceChannel().GetAwaiter();
 
 			_client.ShardReady += OnReady;
 			_lavaNode.OnTrackEnded += OnTrackEnded;
@@ -40,8 +38,6 @@ namespace DiscordNET.Managers
 			_lavaNode.OnLog += LavaNode_OnLog;
 			_lavaNode.OnTrackException += OnTrackException;
 			_lavaNode.OnPlayerUpdated += OnPLayerUpdate;
-
-			_cooldown = cooldown ?? 4;
 
 			_playerTimeStamps = new Dictionary<LavaPlayer, DateTime>();
 			Timer = new Timer(2000);
@@ -53,7 +49,7 @@ namespace DiscordNET.Managers
 		{
 			foreach(var instance in _playerTimeStamps)
 			{
-				if (instance.Value + new TimeSpan(0, _cooldown, 0) < DateTime.Now)
+				if (instance.Value + new TimeSpan(0, 4, 0) < DateTime.Now)
 				{
 					_lavaNode.LeaveAsync(instance.Key.VoiceChannel);
 					_playerTimeStamps.Remove(instance.Key);
@@ -84,47 +80,6 @@ namespace DiscordNET.Managers
 			IEnumerable<IUser> users = await voiceChannel.GetUsersAsync().FlattenAsync();
 			if (users.Count(x => !x.IsBot) == 0)
 				await _lavaNode.LeaveAsync(arg.Player.VoiceChannel);
-
-			/*if(arg.Player.PlayerState == Victoria.Enums.PlayerState.Stopped || arg.Player.PlayerState == Victoria.Enums.PlayerState.Paused)
-			{
-				if (_playerTimeStamps.ContainsKey(arg.Player))
-					_playerTimeStamps.Remove(arg.Player);
-
-				_playerTimeStamps.Add(arg.Player, DateTime.Now);
-			}
-			else if(arg.Player.PlayerState == PlayerState.Playing)
-			{
-				if (_playerTimeStamps.ContainsKey(arg.Player))
-					_playerTimeStamps.Remove(arg.Player);
-			}*/
-		}
-
-		private async Task CheckVoiceChannel()
-		{
-			/*while (true)
-			{
-				IEnumerable<SocketGuild> guilds = _client.Guilds;
-
-				foreach (var guild in guilds)
-				{
-					if (_lavaNode.TryGetPlayer(guild, out var player))
-					{
-						var voiceChannel = player.VoiceChannel;
-
-						var users = await voiceChannel.GetUsersAsync().FlattenAsync();
-
-						if (users.Count(x => !x.IsBot) == 0)
-						{
-							await _lavaNode.LeaveAsync(voiceChannel);
-						}
-
-						if (player.VoiceChannel == guild.AFKChannel)
-							await _lavaNode.LeaveAsync(voiceChannel);
-					}
-				}
-
-				await Task.Delay(60000);
-			}*/
 		}
 
 

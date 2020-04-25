@@ -197,5 +197,23 @@ namespace DiscordNET.Modules
 			if (successString.Length != 0) await ReplyAsync($"{successString} Removed from Whitelist");
 			if (conflictString.Length != 0) await ReplyAsync($"{conflictString} Already Blacklisted");
 		}
+
+		[Command("embed")]
+		[Summary("Create Custom Embeds")]
+		public async Task CreateEmbed(string title, string description, params string[] fields )
+		{
+			var msg = new EmbedBuilder()
+			{
+				Title = title,
+				Description = description
+			};
+
+			for(int i = 0; i <= fields.Count() / 2; i++)
+			{
+				msg.AddField(fields[i], fields[i + 1]);
+			}
+
+			await ReplyAsync(embed: msg.Build());
+		}
 	}
 }

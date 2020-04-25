@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
-using DiscordNET.Data.Rainbow6;
 using DiscordNET.Extensions;
 using R6Api;
 using R6Api.Enums;
