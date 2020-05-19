@@ -24,7 +24,6 @@ namespace DiscordNET.Modules
 	{
 		private readonly LavaNode _lavaNode;
 		private readonly MusicManager _musicManager;
-		private static readonly IEnumerable<int> Range = Enumerable.Range(1900, 2000);
 
 		public MusicModule ( LavaNode lavaNode, MusicManager musicManager )
 		{
@@ -127,7 +126,7 @@ namespace DiscordNET.Modules
 			SearchResponse results = await _lavaNode.SearchAsync(query);
 			LavaPlayer player = _lavaNode.GetPlayer(Context.Guild);
 
-			LavaTrack selectedTrack = default(LavaTrack);
+			LavaTrack selectedTrack = default;
 
 			switch (results.LoadStatus)
 			{

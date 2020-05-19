@@ -14,10 +14,8 @@ namespace DiscordNET.Modules
     public class CsgoModule : ModuleBase<ShardedCommandContext>
     {
         private CsgoClient _csgo;
-        private DiscordShardedClient _client;
-        public CsgoModule ( DiscordShardedClient client )
+        public CsgoModule ( )
         {
-            _client = client;
             _csgo = new CsgoClient();
         }
         [Command("profile")]

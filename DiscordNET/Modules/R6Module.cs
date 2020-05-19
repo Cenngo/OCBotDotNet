@@ -17,7 +17,7 @@ namespace DiscordNET.Modules
     {
         private readonly R6Client _r6;
 
-        public R6Module ( DiscordShardedClient client, CommandService commands )
+        public R6Module ()
         {
             _r6 = new R6Client(new R6Config
             {

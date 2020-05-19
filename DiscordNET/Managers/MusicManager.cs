@@ -25,7 +25,7 @@ namespace DiscordNET.Managers
 		private readonly DiscordShardedClient _client;
 		private readonly LavaNode _lavaNode;
 		private Dictionary<LavaPlayer, DateTime> _playerTimeStamps;
-		private Timer Timer;
+		private Timer _timer;
 
 		public MusicManager ( DiscordShardedClient client, LavaNode lavaNode )
 		{
@@ -40,9 +40,9 @@ namespace DiscordNET.Managers
 			_lavaNode.OnPlayerUpdated += OnPLayerUpdate;
 
 			_playerTimeStamps = new Dictionary<LavaPlayer, DateTime>();
-			Timer = new Timer(2000);
-			Timer.Elapsed += CheckCooldown;
-			Timer.Start();
+			_timer = new Timer(2000);
+			_timer.Elapsed += CheckCooldown;
+			_timer.Start();
 		}
 
 		private void CheckCooldown ( object sender, ElapsedEventArgs e )
