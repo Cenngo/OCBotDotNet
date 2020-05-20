@@ -18,13 +18,11 @@ namespace DiscordNET.Extensions
 {
 	public static class VictoriaCustomExtensions
 	{
-		public static GeniusSearchResponse SearchGenius(this LavaTrack lavaTrack)
+		public static GeniusSearchResponse SearchGenius(this LavaTrack lavaTrack, string token)
 		{
 			RestClient client = new RestClient($"https://api.genius.com/search");
 			client.Timeout = -1;
 			RestRequest request = new RestRequest(Method.GET);
-
-			string? token = Environment.GetEnvironmentVariable("GeniusToken");
 
 			string query = lavaTrack.Title;
 			query = Regex.Replace(query, @"\(.*?\)", "");
@@ -41,9 +39,9 @@ namespace DiscordNET.Extensions
 			return result;
 		}
 
-		public static async Task<string> GeniusLyrics(this LavaTrack lavaTrack )
+		public static async Task<string> GeniusLyrics(this LavaTrack lavaTrack, string token )
 		{
-			GeniusSearchResponse searchResponse = lavaTrack.SearchGenius();
+			GeniusSearchResponse searchResponse = lavaTrack.SearchGenius(token);
 
 			if (searchResponse.Response.Hits.Count == 0)
 				return null;

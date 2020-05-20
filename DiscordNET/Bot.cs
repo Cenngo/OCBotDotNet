@@ -4,12 +4,12 @@ using Discord.WebSocket;
 using DiscordNET.Data;
 using DiscordNET.Handlers;
 using DiscordNET.Managers;
-using LiteDB;
 using Newtonsoft.Json;
 using System;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 
 namespace DiscordNET
 {
@@ -17,28 +17,28 @@ namespace DiscordNET
 	{
 		public Config jsonConfig { get; private set; }
 		public DiscordShardedClient _client { get; private set; }
+		private Auth _auth;
+
+		public Bot()
+		{
+			var ser = new XmlSerializer(typeof(Auth));
+
+			using (var reader = new FileStream("auth.xml", FileMode.Open))
+				_auth = (Auth)ser.Deserialize(reader);
+		}
+
 		public async Task MainAsync ()
-		{		
-			//jsonConfig = JsonConvert.DeserializeObject<Config>(File.ReadAllText("config.json"));
-			//Set environment variable: DCBOTTOKEN with your Discord bot API token @
-			//https://discordapp.com/developers/applications/
-			string botToken = Environment.GetEnvironmentVariable("DCBOTTOKEN");
-			while (botToken.Length == 0)
-			{
-				Console.WriteLine("Checking user environment for token...");
-				botToken = Environment.GetEnvironmentVariable("DCBOTTOKEN",EnvironmentVariableTarget.User);
-				//Console.WriteLine("no token");
-			}
-			Console.WriteLine("Token: " + botToken);
-			
+		{	
 			_client = new DiscordShardedClient(new DiscordSocketConfig
 			{
 				LogLevel = LogSeverity.Debug,
 				TotalShards = 5
 			});
 
+			await _client.SetActivityAsync(new Game("Prefix: '>', For Help: '>help'", ActivityType.Playing, ActivityProperties.None));
+
 			await _client.StartAsync();
-			await _client.LoginAsync(TokenType.Bot, botToken, true);
+			await _client.LoginAsync(TokenType.Bot, _auth.DiscordToken, true);
 
 			CommandService _commands = new CommandService(new CommandServiceConfig
 			{

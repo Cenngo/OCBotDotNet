@@ -16,13 +16,15 @@ namespace DiscordNET.Modules
     public class R6Module : ModuleBase<ShardedCommandContext>
     {
         private readonly R6Client _r6;
+        private readonly Auth _auth;
 
-        public R6Module ()
+        public R6Module (Auth auth)
         {
+            _auth = auth;
             _r6 = new R6Client(new R6Config
             {
                 AutoCacheAvoidance = true,
-                ApiKey = "2c5e6c9d-860a-419f-894e-66e2cd7fd3b7"
+                ApiKey = _auth.R6Token
             });
         }
 

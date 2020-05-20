@@ -24,11 +24,13 @@ namespace DiscordNET.Modules
 	{
 		private readonly LavaNode _lavaNode;
 		private readonly MusicManager _musicManager;
+		private readonly Auth _auth;
 
-		public MusicModule ( LavaNode lavaNode, MusicManager musicManager )
+		public MusicModule ( LavaNode lavaNode, MusicManager musicManager, Auth auth )
 		{
 			_musicManager = musicManager;
 			_lavaNode = lavaNode;
+			_auth = auth;
 		}
 		
 		[RequireOwner]
@@ -410,7 +412,7 @@ namespace DiscordNET.Modules
 			
 			LavaTrack track = player.Track;
 			string query = track.Title;
-			string lyrics = await track.GeniusLyrics();
+			string lyrics = await track.GeniusLyrics(_auth.GeniusToken);
 
 			if (lyrics == null)
 			{
@@ -420,7 +422,7 @@ namespace DiscordNET.Modules
 
 			lyrics = Regex.Replace(lyrics, @"\[.*?\]", "**$&**");
 
-			GSResult result = track.SearchGenius().Response.Hits.First().Result;
+			GSResult result = track.SearchGenius(_auth.GeniusToken).Response.Hits.First().Result;
 
 			if (lyrics.Length > 2048)
 			{
