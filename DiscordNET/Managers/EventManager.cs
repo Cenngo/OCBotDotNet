@@ -31,18 +31,7 @@ namespace DiscordNET.Managers
 
 		private async Task OnJoinedGuild ( SocketGuildUser arg )
 		{
-			SocketGuild guild = arg.Guild;
-
-			Embed welcomeEmbed = new EmbedBuilder
-			{
-				Author = new EmbedAuthorBuilder
-				{
-					Name = guild.CurrentUser.Username,
-					IconUrl = guild.CurrentUser.GetAvatarUrl()
-				},
-				Title = $"Welcome to the {guild.Name}"
-			}.Build();
-			await guild.DefaultChannel.SendMessageAsync(embed: welcomeEmbed);
+			
 		}
 
 		private async Task OnUserTyping ( SocketUser user, ISocketMessageChannel channel )
