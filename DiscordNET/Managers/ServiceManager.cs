@@ -28,19 +28,20 @@ namespace DiscordNET.Managers
 			_commands = commands ?? new CommandService();
 			_botDB = new LiteDatabase(@"BotData.db");
 			_guildConfig = _botDB.GetCollection<GuildConfig>("GuildConfigs");
+
+			var ser = new XmlSerializer(typeof(Auth));
+			using (var reader = new FileStream("auth.xml", System.IO.FileMode.Open))
+				_auth = (Auth)ser.Deserialize(reader);
+
 			_lavaConfig = new LavaConfig
 			{
 				LogSeverity = Discord.LogSeverity.Debug,
 				ResumeTimeout = new TimeSpan(0, 2, 0),
 				SelfDeaf = false,
 				EnableResume = true,
-				Port=25565
+				Port= _auth.LavalinkPort
 			};
 			_lavaNode = new LavaNode(_client, _lavaConfig);
-
-			var ser = new XmlSerializer(typeof(Auth));
-			using (var reader = new FileStream("auth.xml", System.IO.FileMode.Open))
-				_auth = (Auth)ser.Deserialize(reader);
 		}
 
 		public IServiceProvider BuildServiceProvider () => new ServiceCollection()

@@ -9,5 +9,6 @@ namespace DiscordNET
         public string DiscordToken { get; set; }
         public string GeniusToken { get; set; }
         public string R6Token { get; set; }
+        public ushort LavalinkPort { get; set; }
     }
 }
