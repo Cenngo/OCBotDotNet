@@ -33,7 +33,6 @@ namespace DiscordNET.Modules
 			_auth = auth;
 		}
 		
-		[RequireOwner]
 		[Command("Join")]
 		[Summary("Create a music player instance and summon it to your current voice channel")]
 		public async Task Join ()
@@ -475,8 +474,13 @@ namespace DiscordNET.Modules
 
 		[Command("queue")]
 		[Summary("Get a listing of the queue")]
-		public async Task Queue ()
+		public async Task Queue (string scope = "top10")
 		{
+			void AddDescription(string line)
+            {
+
+            }
+
 			if (_lavaNode.TryGetPlayer(Context.Guild, out LavaPlayer player))
 			{
 
@@ -484,26 +488,27 @@ namespace DiscordNET.Modules
 
 				List<string> description = new List<string>();
 
-				if (Queue.Count() > 10)
+				if(Queue.Count() < 1)
 				{
-					for (int i = 0; i < 10; i++)
+					await ReplyAsync("There are no items in the queue");
+					return;
+				}
+
+				if(scope == "all")
+                {
+					for(int i = 0; i < Queue.Count(); i++)
+                    {
+						var track = (LavaTrackWithUser)Queue?.ElementAt(i);
+						description.Add($"**{i + 1}.** `{track.Track.Title}` [{track.Track.Duration}] Added by: {track.User.Username}");
+					}
+                }
+				else
+                {
+					for (int i = 0; i < 10 && i < Queue.Count(); i++)
 					{
 						var track = (LavaTrackWithUser)Queue?.ElementAt(i);
 						description.Add($"**{i + 1}.** `{track.Track.Title}` [{track.Track.Duration}] Added by: {track.User.Username}");
 					}
-				}
-				else if (Queue.Count() > 0)
-				{
-					int count = 1;
-					foreach (var track in Queue)
-					{
-						description.Add($"**{count}.** `{((LavaTrackWithUser)track).Track.Title}` [{((LavaTrackWithUser)track).Track.Duration}] Added by: {((LavaTrackWithUser)track).User.Username}");
-						count++;
-					}
-				}
-				else
-				{
-					await Context.Channel.SendMessageAsync("There are no tracks in the queue.");
 				}
 
 				Embed queueEmbed = new EmbedBuilder
@@ -520,5 +525,14 @@ namespace DiscordNET.Modules
 				await Context.Channel.SendMessageAsync(embed: queueEmbed);
 			}
 		}
+
+		public async Task QueueSwap(int first, int  second)
+        {
+			if(_lavaNode.TryGetPlayer(Context.Guild, out var player))
+            {
+				var queue = player.Queue;
+				
+            }
+        }
 	}
 }

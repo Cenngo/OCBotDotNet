@@ -123,15 +123,13 @@ namespace DiscordNET.Modules
 		[Summary("Add a Person to the whitelist to be excluded from bot activities that are meant to irritate people")]
 		public async Task AddWhitelist([Summary("Mention the users to be effected by the change")]params string[] mentions)
 		{
-			GuildConfig currentConfig = _guildConfig.FindOne(x => x.GuildId == Context.Guild.Id);
-
-			IReadOnlyCollection<SocketUser> mentionedUsers = Context.Message.MentionedUsers;
-
 			StringBuilder successString = new StringBuilder();
 			StringBuilder conflictString = new StringBuilder();
 
-			foreach (SocketUser user in mentionedUsers)
-			{
+			GuildConfig currentConfig = _guildConfig.FindOne(x => x.GuildId == Context.Guild.Id);
+
+			void AppendUsers(SocketUser user)
+            {
 				string userId = string.Join(" ", user.Username, user.Discriminator);
 
 				if (currentConfig.WhiteList.Exists(x => x == userId))
@@ -145,6 +143,22 @@ namespace DiscordNET.Modules
 					_guildConfig.Update(currentConfig);
 				}
 			}
+
+			IReadOnlyCollection<SocketUser> mentionedUsers = Context.Message.MentionedUsers;
+			IReadOnlyCollection<SocketRole> mentionedRoles = Context.Message.MentionedRoles;
+
+			foreach (SocketUser user in mentionedUsers)
+			{
+				AppendUsers(user);
+			}
+
+			foreach (SocketRole role in mentionedRoles)
+            {
+				foreach (SocketUser user in role.Members)
+                {
+					AppendUsers(user);
+                }
+            }
 
 			if(successString.Length != 0) await ReplyAsync($"{successString} Whitelisted");
 			if(conflictString.Length != 0)await ReplyAsync($"{conflictString} Already Whitelisted");
