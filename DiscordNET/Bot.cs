@@ -48,7 +48,7 @@ namespace DiscordNET
 			});
 
 			ServiceManager serviceManager = new ServiceManager(_client, _commands);
-			EventManager eventManager = new EventManager(_client);
+			EventManager eventManager = new EventManager(_client, _auth);
 
 			IServiceProvider _services = serviceManager.BuildServiceProvider();
 

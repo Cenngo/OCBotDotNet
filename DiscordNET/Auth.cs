@@ -10,5 +10,7 @@ namespace DiscordNET
         public string GeniusToken { get; set; }
         public string R6Token { get; set; }
         public ushort LavalinkPort { get; set; }
+        public ConsoleColor VictoriaLogColor { get; set; }
+        public ConsoleColor DiscordLogColor { get; set; }
     }
 }

@@ -151,7 +151,7 @@ namespace DiscordNET.Modules
 						}
 						return;
 					}
-					break;
+					return;
 				case LoadStatus.SearchResult:
 					break;
 				case LoadStatus.LoadFailed:
@@ -419,35 +419,11 @@ namespace DiscordNET.Modules
 				return;
 			}
 
-			lyrics = Regex.Replace(lyrics, @"\[.*?\]", "**$&**");
-
 			GSResult result = track.SearchGenius(_auth.GeniusToken).Response.Hits.First().Result;
 
-			if (lyrics.Length > 2048)
-			{
-				IEnumerable<string> pages = Enumerable.Range(0, lyrics.Length / 2048).Select(i => lyrics.Substring(i * 2048, 2048));
+			string message = $"**{result.FullTitle.ToUpper()}**\n```ini\n{lyrics}\n```";
 
-				InteractiveService interactivity = new InteractiveService(Context.Client.GetShardFor(Context.Guild));
-				await interactivity.SendPaginatedMessageAsync(Context, new PaginatedMessage
-				{
-					Title = result.FullTitle.ToUpper(),
-					Color = Color.DarkPurple,
-					Pages = pages.ToList()
-				});
-			}
-
-			lyrics += "\n\n *For the rest of the lyrics, click the title*";
-
-			Embed lyricsEmbed = new EmbedBuilder
-			{
-				Title = result.FullTitle.ToUpper(),
-				Description = lyrics,
-				Color = Color.DarkPurple,
-				ThumbnailUrl = result.HeadedImgUrl,
-				Url = result.URL
-			}.WithFooter("Lyrics Provided by Genius Inc.", "https://t2.genius.com/unsafe/220x220/https%3A%2F%2Fimages.genius.com%2F2a186f15f137ffa0d4b6bc3cd6034787.680x680x1.png")
-			.Build();
-			await ReplyAsync(embed: lyricsEmbed);
+			await ReplyAsync(message);
 			
 		}
 
@@ -476,15 +452,16 @@ namespace DiscordNET.Modules
 		[Summary("Get a listing of the queue")]
 		public async Task Queue (string scope = "top10")
 		{
-			void AddDescription(string line)
-            {
-
-            }
-
 			if (_lavaNode.TryGetPlayer(Context.Guild, out LavaPlayer player))
 			{
 
-				var Queue = player.Queue.Items;
+				var Queue = player.Queue.Items.Cast<LavaTrackWithUser>();
+				var duration = new TimeSpan();
+
+				foreach(var item in Queue)
+                {
+					duration += item.Track.Duration;
+				}
 
 				List<string> description = new List<string>();
 
@@ -494,21 +471,10 @@ namespace DiscordNET.Modules
 					return;
 				}
 
-				if(scope == "all")
+				for(int i = 0; i < Queue.Count() && (scope == "all" || i < 10); i++)
                 {
-					for(int i = 0; i < Queue.Count(); i++)
-                    {
-						var track = (LavaTrackWithUser)Queue?.ElementAt(i);
-						description.Add($"**{i + 1}.** `{track.Track.Title}` [{track.Track.Duration}] Added by: {track.User.Username}");
-					}
-                }
-				else
-                {
-					for (int i = 0; i < 10 && i < Queue.Count(); i++)
-					{
-						var track = (LavaTrackWithUser)Queue?.ElementAt(i);
-						description.Add($"**{i + 1}.** `{track.Track.Title}` [{track.Track.Duration}] Added by: {track.User.Username}");
-					}
+					var track = Queue.ElementAt(i);
+					description.Add($"**{i + 1}.** `{track.Track.Title}` [{track.Track.Duration}] Added by: {track.User.Username}");
 				}
 
 				Embed queueEmbed = new EmbedBuilder
@@ -517,7 +483,7 @@ namespace DiscordNET.Modules
 					Description = string.Join("\n", description),
 					Footer = new EmbedFooterBuilder
 					{
-						Text = $"Number of Tracks: {Queue.Count()}"
+						Text = $"Number of Tracks: {Queue.Count()}\tEstimated Duration: "
 					},
 					Color = Color.DarkPurple
 				}.Build();

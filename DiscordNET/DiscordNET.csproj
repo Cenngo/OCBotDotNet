@@ -5,6 +5,15 @@
     <TargetFramework>netcoreapp3.0</TargetFramework>
     <UserSecretsId>2473bcf9-9992-4154-9a1a-94915377dad0</UserSecretsId>
     <Platforms>AnyCPU</Platforms>
+    <Configurations>Debug;Release</Configurations>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
 
   <ItemGroup>

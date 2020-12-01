@@ -80,11 +80,15 @@ namespace DiscordNET.Modules
 		[Summary("Register a new prefix under the current guild")]
 		public async Task AddPrefix ([Summary("Prefix to Add")]string prefix)
 		{
+			const int bufferSize = 5;
+
 			GuildConfig currentConfig = _guildConfig.FindOne(x => x.GuildId == Context.Guild.Id);
 
 			currentConfig.Prefix.Add(prefix);
-			_guildConfig.Update(currentConfig);
-			await ReplyAsync($"Successfully Added `{prefix}` prefix");
+            if (_guildConfig.Update(currentConfig))
+            {
+				await ReplyAsync($"Successfully Added `{prefix}` prefix");
+			}
 		}
 
 		[Command("prefix remove")]
@@ -119,27 +123,78 @@ namespace DiscordNET.Modules
 			await ReplyAsync($"Successfully Changed Irritation Mode to `{state}`");
 		}
 
-		[Command("whitelist add")]
+		[Command("curse add")]
+		public async Task CurseAdd ([Remainder]string curse)
+        {
+			GuildConfig currentConfig = _guildConfig.FindOne(x => x.GuildId == Context.Guild.Id);
+
+			if(currentConfig.Curses.Exists(x => x == curse))
+            {
+				await ReplyAsync("Overlapping Curse Word");
+				return;
+            }
+
+			currentConfig.Curses.Add(curse);
+
+			if (_guildConfig.Update(currentConfig))
+				await ReplyAsync("Successfully Added Swear Word");
+		}
+
+		[Command("curse remove")]
+		public async Task CurseRemove ( [Remainder]string curse )
+        {
+			GuildConfig currentConfig = _guildConfig.FindOne(x => x.GuildId == Context.Guild.Id);
+			if(currentConfig.Curses.Remove(curse))
+            {
+				if(_guildConfig.Update(currentConfig))
+					await ReplyAsync("Successfully Removed Swear Word");
+			}
+		}
+
+		[Command("curse list")]
+		public async Task CurseList()
+        {
+			GuildConfig currentConfig = _guildConfig.FindOne(x => x.GuildId == Context.Guild.Id);
+			var curses = currentConfig.Curses;
+
+			StringBuilder replyString = new StringBuilder();
+
+			foreach (string curse in curses)
+			{
+				replyString.Append(curse + "\n");
+			}
+
+			await ReplyAsync($"**CURSES:**\n{replyString}");
+		}
+
+		[Command("checklist add")]
 		[Summary("Add a Person to the whitelist to be excluded from bot activities that are meant to irritate people")]
-		public async Task AddWhitelist([Summary("Mention the users to be effected by the change")]params string[] mentions)
+		public async Task AddWhitelist([Summary("List to perform the operation on: blacklist/whitelist")] string list, [Summary("Mention the users to be effected by the change")]params string[] mentions)
 		{
 			StringBuilder successString = new StringBuilder();
 			StringBuilder conflictString = new StringBuilder();
 
 			GuildConfig currentConfig = _guildConfig.FindOne(x => x.GuildId == Context.Guild.Id);
 
-			void AppendUsers(SocketUser user)
+			if(list != "blacklist" && list != "whitelist")
+            {
+				await ReplyAsync("Invalid List Selection Parameter.");
+				return;
+            }
+			List<string> checklist = ( list == "blacklist" ) ? currentConfig.BlackList : currentConfig.WhiteList; 
+
+            void AppendUsers(SocketUser user)
             {
 				string userId = string.Join(" ", user.Username, user.Discriminator);
 
-				if (currentConfig.WhiteList.Exists(x => x == userId))
+				if (checklist.Exists(x => x == userId))
 				{
 					conflictString.Append($"`{user.Username}`\t");
 				}
 				else
 				{
 					successString.Append($"`{user.Username}`\t");
-					currentConfig.WhiteList.Add(userId);
+					checklist.Add(userId);
 					_guildConfig.Update(currentConfig);
 				}
 			}
@@ -164,26 +219,32 @@ namespace DiscordNET.Modules
 			if(conflictString.Length != 0)await ReplyAsync($"{conflictString} Already Whitelisted");
 		}
 
-		[Command("whitelist list")]
+		[Command("checklist list")]
 		[Summary("List the Current guild whitelist")]
-		public async Task ListWhitelist()
+		public async Task ListWhitelist([Summary("List to perform the operation on: blacklist/whitelist")] string list)
 		{
 			GuildConfig currentConfig = _guildConfig.FindOne(x => x.GuildId == Context.Guild.Id);
-			List<string> whitelist = currentConfig.WhiteList;
+
+			if (list != "blacklist" && list != "whitelist")
+			{
+				await ReplyAsync("Invalid List Selection Parameter.");
+				return;
+			}
+			List<string> checklist = ( list == "blacklist" ) ? currentConfig.BlackList : currentConfig.WhiteList;
 
 			StringBuilder replyString = new StringBuilder();
 
-			foreach (string user in whitelist)
+			foreach (string user in checklist)
 			{
 				replyString.Append(string.Concat("`", user, "`\n"));
 			}
 
-			await ReplyAsync(replyString.ToString());
+			await ReplyAsync($"**{list.ToUpper()}:**\n{replyString}");
 		}
 
-		[Command("whitelist remove")]
+		[Command("checklist remove")]
 		[Summary("Remove a Person to the whitelist to be excluded from bot activities that are meant to irritate people")]
-		public async Task RemoveWhitelist ( [Summary("Mention the users to be effected by the change")]params string[] mentions )
+		public async Task RemoveWhitelist ([Summary("List to perform the operation on: blacklist/whitelist")]string list, [Summary("Mention the users to be effected by the change")]params string[] mentions )
 		{
 			GuildConfig currentConfig = _guildConfig.FindOne(x => x.GuildId == Context.Guild.Id);
 
@@ -192,24 +253,45 @@ namespace DiscordNET.Modules
 			StringBuilder successString = new StringBuilder();
 			StringBuilder conflictString = new StringBuilder();
 
+			if (list != "blacklist" && list != "whitelist")
+			{
+				await ReplyAsync("Invalid List Selection Parameter.");
+				return;
+			}
+			List<string> checklist = ( list == "blacklist" ) ? currentConfig.BlackList : currentConfig.WhiteList;
+
 			foreach (SocketUser user in mentionedUsers)
 			{
 				string userId = string.Join(" ", user.Username, user.Discriminator);
 
-				if (!currentConfig.WhiteList.Exists(x => x == userId))
+				if (!checklist.Exists(x => x == userId))
 				{
 					conflictString.Append($"`{user.Username}`\t");
 				}
 				else
 				{
 					successString.Append($"`{user.Username}`\t");
-					currentConfig.WhiteList.Remove(userId);
+					checklist.Remove(userId);
 					_guildConfig.Update(currentConfig);
 				}
 			}
 
-			if (successString.Length != 0) await ReplyAsync($"{successString} Removed from Whitelist");
-			if (conflictString.Length != 0) await ReplyAsync($"{conflictString} Already Blacklisted");
+			if (successString.Length != 0) await ReplyAsync($"{successString} Removed from **{list.ToUpper()}**");
 		}
+
+		[Command("checklist op")]
+		public async Task WhitelistOP ([Summary("blacklist/whitelist")]string mode)
+        {
+			GuildConfig currentConfig = _guildConfig.FindOne(x => x.GuildId == Context.Guild.Id);
+
+			if (mode != "blacklist" && mode != "whitelist")
+			{
+				await ReplyAsync("Invalid List Selection Parameter.");
+				return;
+			}
+			currentConfig.useWhitelist = ( "blacklist" == mode ) ? false : true;
+			if (_guildConfig.Update(currentConfig))
+				await ReplyAsync("Successfully Updated Operation Mode");
+        }
 	}
 }

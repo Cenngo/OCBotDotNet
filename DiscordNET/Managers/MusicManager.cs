@@ -26,11 +26,13 @@ namespace DiscordNET.Managers
 		private readonly LavaNode _lavaNode;
 		private Dictionary<LavaPlayer, DateTime> _playerTimeStamps;
 		private Timer _timer;
+		private ConsoleColor _logColor;
 
-		public MusicManager ( DiscordShardedClient client, LavaNode lavaNode )
+		public MusicManager ( DiscordShardedClient client, LavaNode lavaNode, Auth auth )
 		{
 			_client = client;
 			_lavaNode = lavaNode;
+			_logColor = auth.VictoriaLogColor;
 
 			_client.ShardReady += OnReady;
 			_lavaNode.OnTrackEnded += OnTrackEnded;
@@ -91,22 +93,10 @@ namespace DiscordNET.Managers
 			return Task.CompletedTask;
 		}
 
-		private Task LavaNode_OnLog ( LogMessage arg )
+		private async Task LavaNode_OnLog ( LogMessage arg )
 		{
-			StringBuilder infoString = new StringBuilder();
-			StringBuilder messageString = new StringBuilder();
-
-			infoString.AppendJoin(" ", DateTime.Now.ToString("hh:mm:ss"), arg.Source);
-
-			messageString.AppendJoin(" ", arg.Message, arg.Exception);
-
-			Console.ForegroundColor = ConsoleColor.Yellow;
-
-			Console.Write(infoString.ToString());
-			Console.ResetColor();
-			Console.WriteLine($"\t {messageString}");
-
-			return Task.CompletedTask;
+			Console.ForegroundColor = _logColor;
+			Console.WriteLine(string.Format("[{0,8}] {1,-10}: {2}", DateTime.Now.ToString("hh: mm:ss"), arg.Source, arg.Message));
 		}
 
 		private Task OnTrackStuck ( TrackStuckEventArgs arg )

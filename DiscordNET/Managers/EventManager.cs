@@ -16,36 +16,67 @@ namespace DiscordNET.Managers
 		private readonly DiscordShardedClient _client;
 		private readonly LiteDatabase _botDB;
 		private readonly LiteCollection<GuildConfig> _guildConfig;
+		private readonly Random _randomizer;
+		private ConsoleColor _logColor;
 
-		public EventManager ( DiscordShardedClient client )
+		public EventManager ( DiscordShardedClient client, Auth auth )
 		{
 			_client = client;
 			_botDB = new LiteDatabase(@"BotData.db");
 			_guildConfig = _botDB.GetCollection<GuildConfig>("GuildConfigs");
+			_randomizer = new Random(DateTime.Now.Second);
+			_logColor = auth.DiscordLogColor;
 
 			_client.Log += OnLog;
 			_client.ShardReady += OnReady;
-			_client.UserJoined += OnJoinedGuild;
+            _client.UserJoined += OnUserJoined;
 			_client.UserIsTyping += OnUserTyping;
+            _client.JoinedGuild += OnJoinedGuild;
+            _client.GuildAvailable += onGuildAvailable;
 		}
 
-		private async Task OnJoinedGuild ( SocketGuildUser arg )
-		{
-			
+        private async Task onGuildAvailable ( SocketGuild arg )
+        {
+			var guildId = arg.Id;
+			if (!_guildConfig.Exists(x => x.GuildId == guildId))
+			{
+				_guildConfig.Insert(new GuildConfig()
+				{
+					GuildId = guildId,
+					Irritate = false,
+					WhiteList = new List<string> { },
+					Prefix = new List<string> { ">" },
+					useWhitelist = true,
+					BlackList = new List<string> { },
+					Curses = new List<string> { "Ne Yazıyon Lan Amkodum" },
+			});
+			}
 		}
 
-		private async Task OnUserTyping ( SocketUser user, ISocketMessageChannel channel )
+        private async Task OnJoinedGuild ( SocketGuild arg )
+        {
+			throw new NotImplementedException();
+		}
+
+        private async Task OnUserJoined ( SocketGuildUser arg )
+        {
+            throw new NotImplementedException();
+        }
+
+        private async Task OnUserTyping ( SocketUser user, ISocketMessageChannel channel )
 		{
 			SocketGuild guild = (channel as SocketGuildChannel)?.Guild;
 
 			GuildConfig currentConfig = _guildConfig.FindOne(x => x.GuildId == guild.Id);
-			List<string> whitelist = currentConfig.WhiteList;
+			var opMode = currentConfig.useWhitelist;
 
-			if (!currentConfig.Irritate || whitelist.Exists(x => x == string.Join(" ", user.Username, user.Discriminator)))
-			{
-				return;
-			}
-			await channel.SendMessageAsync("Ne Yazıyon Lan Amkodum");
+			var checkList = opMode ? currentConfig.WhiteList : currentConfig.BlackList;
+
+			if(currentConfig.Irritate && (checkList.Exists(x => x == string.Join(" ", user.Username, user.Discriminator)) != opMode))
+            {
+				var curse = currentConfig.Curses[_randomizer.Next(currentConfig.Curses.Count)];
+				await channel.SendMessageAsync(curse);
+            }
 		}
 
 		private Task OnReady (DiscordSocketClient arg)
@@ -53,22 +84,17 @@ namespace DiscordNET.Managers
 			return Task.CompletedTask;
 		}
 
-		private Task OnLog ( LogMessage arg )
+		private async Task OnLog ( LogMessage arg )
 		{
-			StringBuilder infoString = new StringBuilder();
-			StringBuilder messageString = new StringBuilder();
+			Console.ForegroundColor = _logColor;
+			Console.WriteLine(string.Format("[{0,8}] {1,-10}: {2}", DateTime.Now.ToString("hh: mm:ss"), arg.Source, arg.Message));
 
-			infoString.AppendJoin(" ", DateTime.Now.ToString("hh:mm:ss"), arg.Source);
-
-			messageString.AppendJoin(" ", arg.Message, arg.Exception);
-
-			Console.ForegroundColor = ConsoleColor.Magenta;
-
-			Console.Write(infoString.ToString());
-			Console.ResetColor();
-			Console.WriteLine($"\t {messageString}");
-
-			return Task.CompletedTask;
+			//Console.ForegroundColor = ConsoleColor.Magenta;
+			//Console.Write("\n[" + DateTime.Now.ToString("hh:mm:ss") + "]");
+			//Console.ForegroundColor = _logColor;
+			//Console.Write(" " + arg.Source);
+			//Console.ForegroundColor = ConsoleColor.White;
+			//Console.Write($"\t{arg.Message} {arg.Exception}");
 		}
 	}
 }

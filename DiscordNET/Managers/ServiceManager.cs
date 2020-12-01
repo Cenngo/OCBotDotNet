@@ -26,11 +26,11 @@ namespace DiscordNET.Managers
 		{
 			_client = client ?? new DiscordShardedClient();
 			_commands = commands ?? new CommandService();
-			_botDB = new LiteDatabase(@"BotData.db");
+			_botDB = new LiteDatabase(@"./BotData.db");
 			_guildConfig = _botDB.GetCollection<GuildConfig>("GuildConfigs");
 
 			var ser = new XmlSerializer(typeof(Auth));
-			using (var reader = new FileStream("auth.xml", System.IO.FileMode.Open))
+			using (var reader = new FileStream("./auth.xml", System.IO.FileMode.Open))
 				_auth = (Auth)ser.Deserialize(reader);
 
 			_lavaConfig = new LavaConfig

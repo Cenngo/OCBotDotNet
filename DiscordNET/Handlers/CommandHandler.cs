@@ -42,17 +42,6 @@ namespace DiscordNET.Handlers
 
 			ShardedCommandContext context = new ShardedCommandContext(_client, message);
 
-			if(!_guildConfig.Exists(x => x.GuildId == context.Guild.Id))
-			{
-				_guildConfig.Insert(new GuildConfig
-				{
-					GuildId = context.Guild.Id,
-					Irritate = false,
-					WhiteList = new List<string> { },
-					Prefix = new List<string> { ">" }
-				});
-			}
-
 			if (message.Author.IsBot || message.HasMentionPrefix(_client.CurrentUser, ref argPos))
 				return;
 
