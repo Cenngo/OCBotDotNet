@@ -62,9 +62,14 @@ namespace DiscordNET.Modules
 
 			try
 			{
-				await _lavaNode.JoinAsync(voiceState.VoiceChannel, Context.Channel as ITextChannel);
-				await ReplyAsync($"Joined {voiceState.VoiceChannel.Name}!");
-				return true;
+				var player = await _lavaNode.JoinAsync(voiceState.VoiceChannel, Context.Channel as ITextChannel);
+				if (player != null)
+				{
+					await ReplyAsync($"Joined {voiceState.VoiceChannel.Name}!");
+					return true;
+				}
+				else
+					return false;
 			}
 			catch (Exception exception)
 			{

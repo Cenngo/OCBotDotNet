@@ -23,6 +23,26 @@ namespace DiscordNET
 		{
 			var ser = new XmlSerializer(typeof(Auth));
 
+			if (!File.Exists("./auth.xml"))
+			{
+				using (var stream = File.Create("./auth.xml"))
+				{
+					ser.Serialize(stream, new Auth()
+					{
+						GeniusToken = "",
+						DiscordToken = "",
+						R6Token = "",
+						DiscordLogColor = ConsoleColor.Cyan,
+						VictoriaLogColor = ConsoleColor.Yellow,
+						LavalinkPort = 2333
+					});
+				}
+				Console.ForegroundColor = ConsoleColor.Red;
+				Console.WriteLine("PLEASE POPULATE THE AUTH FILE THAT CAN BE FOUND IN THE EXECURETION FOLDER!!");
+				Console.ResetColor();
+				Environment.Exit(0);
+			}
+
 			using (var reader = new FileStream("auth.xml", FileMode.Open))
 				_auth = (Auth)ser.Deserialize(reader);
 		}
