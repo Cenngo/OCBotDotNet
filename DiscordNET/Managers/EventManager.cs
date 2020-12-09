@@ -85,7 +85,6 @@ namespace DiscordNET.Managers
         {
             Console.ForegroundColor = _logColor;
             Console.WriteLine(string.Format("[{0,8}] {1,-10}: {2}", DateTime.Now.ToString("hh: mm:ss"), arg.Source, arg.Message));
-            Console.ResetColor();
         }
     }
 }
