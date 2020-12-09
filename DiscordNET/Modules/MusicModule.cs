@@ -25,12 +25,14 @@ namespace DiscordNET.Modules
 		private readonly LavaNode _lavaNode;
 		private readonly MusicManager _musicManager;
 		private readonly Auth _auth;
+		private readonly DiscordShardedClient _client;
 
-		public MusicModule ( LavaNode lavaNode, MusicManager musicManager, Auth auth )
+		public MusicModule ( LavaNode lavaNode, MusicManager musicManager, Auth auth, DiscordShardedClient client )
 		{
 			_musicManager = musicManager;
 			_lavaNode = lavaNode;
 			_auth = auth;
+			_client = client;
 		}
 		
 		[Command("Join")]
@@ -505,5 +507,55 @@ namespace DiscordNET.Modules
 				
             }
         }
+
+		[Command("rickroll")]
+		[Alias("rr")]
+		public async Task Rickroll (ulong channelId)
+        {
+			var channel = Context.Guild.GetVoiceChannel(channelId);
+			if (channel == null)
+				return;
+
+			await PlayRickroll(channel);
+        }
+
+		[Command("rickroll")]
+		[Alias("rr")]
+		public async Task Rickroll (string mention )
+        {
+			var user = Context.Message.MentionedUsers.First();
+			var channels = Context.Guild.VoiceChannels;
+
+			foreach(var channel in channels)
+            {
+                if (channel.Users.Contains(user))
+                {
+					await PlayRickroll(channel);
+					return;
+				}
+            }
+			await ReplyAsync("Couldn't Find the User");
+        }
+
+		private async Task PlayRickroll ( IVoiceChannel channel )
+        {
+			var search = await _lavaNode.SearchYouTubeAsync("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
+			if (search.Tracks.Count > 0)
+			{
+				if (!_lavaNode.HasPlayer(Context.Guild))
+				{
+					var player = await _lavaNode.JoinAsync(channel);
+					await player.PlayAsync(search.Tracks[0]);
+				}
+				else
+				{
+					await _lavaNode.MoveChannelAsync(channel);
+					if (_lavaNode.TryGetPlayer(Context.Guild, out var player))
+					{
+						await player.PlayAsync(search.Tracks[0]);
+					}
+				}
+			}
+		}
 	}
 }

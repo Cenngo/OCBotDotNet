@@ -38,10 +38,10 @@ namespace DiscordNET.Handlers
 
 				foreach (Discord.Commands.ParameterInfo param in command.Command.Parameters)
 				{
-					paramString.AppendLine($"`<{param.Name}>` {param.Type.Name} - **Default:** *{param.DefaultValue ?? "null"}* -> {param.Summary ?? "`no context`"}");
+					paramString.AppendLine($"`<{param.Name}>` {param.Type.Name} - **Default:** *{param.DefaultValue ?? "null"}* : {param.Summary ?? "`no context`"}");
 				}
 				helpEmbed.AddField("Parameters", paramString.ToString());
-				helpEmbed.AddField("Usage", command.Command.Name + " " + string.Join(' ', command.Command.Parameters.Select(x => $"`{x.Name}`").ToArray()));
+				helpEmbed.AddField("Usage", command.Command.GetCommandNameWithGroup() + " " + string.Join(' ', command.Command.Parameters.Select(x => $"`{x.Name}`").ToArray()));
 			}
 			return helpEmbed.Build();
 		}
