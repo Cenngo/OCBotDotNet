@@ -190,6 +190,12 @@ namespace DiscordNET.Modules
                     using (var interactive = new InteractiveEventManager(Context, true, true))
                     {
                         response = await interactive.NextMessage(TimeSpan.FromMinutes(1));
+                        if(response == null)
+                        {
+                            await ReplyAsync("Did not Respond in Time.");
+                            await Context.Channel.DeleteMessageAsync(searchMessage);
+                            return;
+                        }
                     }
 
                     if (response.Content.ToLower() == "cancel")

@@ -1,11 +1,8 @@
 ﻿using Discord.Commands;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
-using Discord;
 using Discord.WebSocket;
+using System;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace DiscordNET.Managers
 {
@@ -18,9 +15,9 @@ namespace DiscordNET.Managers
         private ICommandContext context;
         private bool fromSourceUser;
         private bool fromSourceChannel;
-        public InteractiveEventManager (ICommandContext context, bool fromSourceUser, bool fromSourceChannel)
+        public InteractiveEventManager ( ICommandContext context, bool fromSourceUser, bool fromSourceChannel )
         {
-            _client = context.Client.GetType() == typeof(DiscordSocketClient) ? context.Client as DiscordSocketClient 
+            _client = context.Client.GetType() == typeof(DiscordSocketClient) ? context.Client as DiscordSocketClient
                 : ( context.Client as DiscordShardedClient ).GetShardFor(context.Guild);
             this.context = context;
             this.fromSourceChannel = fromSourceChannel;
@@ -32,23 +29,23 @@ namespace DiscordNET.Managers
             _handle.Dispose();
         }
 
-        public async Task<SocketMessage> NextMessage (TimeSpan duration )
+        public async Task<SocketMessage> NextMessage ( TimeSpan duration )
         {
             _handle = new EventWaitHandle(false, EventResetMode.ManualReset);
             _client.MessageReceived += OnMessage;
 
             _handle.WaitOne(duration);
+            _handle.Close();
             return _message;
         }
 
         private async Task OnMessage ( SocketMessage msg )
         {
-            if((!fromSourceChannel || (msg.Channel == context.Channel)) && (!fromSourceUser || (msg.Author == context.User ) ))
+            if (( !fromSourceChannel || ( msg.Channel == context.Channel ) ) && ( !fromSourceUser || ( msg.Author == context.User ) ))
             {
                 _message = msg;
                 _handle.Set();
                 _client.MessageReceived -= OnMessage;
-                _handle.Close();
             }
         }
     }
