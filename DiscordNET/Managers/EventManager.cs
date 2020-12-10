@@ -1,85 +1,90 @@
 ﻿using Discord;
-using Discord.Commands;
 using Discord.WebSocket;
 using DiscordNET.Data;
 using LiteDB;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace DiscordNET.Managers
 {
-	public sealed class EventManager
-	{
-		private readonly DiscordShardedClient _client;
-		private readonly LiteDatabase _botDB;
-		private readonly LiteCollection<GuildConfig> _guildConfig;
+    public sealed class EventManager
+    {
+        private readonly DiscordShardedClient _client;
+        private readonly LiteDatabase _botDB;
+        private readonly LiteCollection<GuildConfig> _guildConfig;
+        private readonly Random _randomizer;
+        private ConsoleColor _logColor;
 
-		public EventManager ( DiscordShardedClient client )
-		{
-			_client = client;
-			_botDB = new LiteDatabase(@"BotData.db");
-			_guildConfig = _botDB.GetCollection<GuildConfig>("GuildConfigs");
+        public EventManager ( DiscordShardedClient client, Auth auth )
+        {
+            _client = client;
+            _botDB = new LiteDatabase(@"BotData.db");
+            _guildConfig = _botDB.GetCollection<GuildConfig>("GuildConfigs");
+            _randomizer = new Random(DateTime.Now.Second);
+            _logColor = auth.DiscordLogColor;
 
-			_client.Log += OnLog;
-			_client.ShardReady += OnReady;
-			_client.UserJoined += OnJoinedGuild;
-			_client.UserIsTyping += OnUserTyping;
-		}
+            _client.Log += OnLog;
+            _client.ShardReady += OnReady;
+            _client.UserJoined += OnUserJoined;
+            _client.UserIsTyping += OnUserTyping;
+            _client.JoinedGuild += OnJoinedGuild;
+            _client.GuildAvailable += onGuildAvailable;
+        }
 
-		private async Task OnJoinedGuild ( SocketGuildUser arg )
-		{
-			SocketGuild guild = arg.Guild;
+        private async Task onGuildAvailable ( SocketGuild arg )
+        {
+            var guildId = arg.Id;
+            if (!_guildConfig.Exists(x => x.GuildId == guildId))
+            {
+                _guildConfig.Insert(new GuildConfig()
+                {
+                    GuildId = guildId,
+                    Irritate = false,
+                    WhiteList = new List<string> { },
+                    Prefix = new List<string> { ">" },
+                    useWhitelist = true,
+                    BlackList = new List<string> { },
+                    Curses = new List<string> { "Ne Yazıyon Lan Amkodum" },
+                });
+            }
+        }
 
-			Embed welcomeEmbed = new EmbedBuilder
-			{
-				Author = new EmbedAuthorBuilder
-				{
-					Name = guild.CurrentUser.Username,
-					IconUrl = guild.CurrentUser.GetAvatarUrl()
-				},
-				Title = $"Welcome to the {guild.Name}"
-			}.Build();
-			await guild.DefaultChannel.SendMessageAsync(embed: welcomeEmbed);
-		}
+        private async Task OnJoinedGuild ( SocketGuild arg )
+        {
+            throw new NotImplementedException();
+        }
 
-		private async Task OnUserTyping ( SocketUser user, ISocketMessageChannel channel )
-		{
-			SocketGuild guild = (channel as SocketGuildChannel)?.Guild;
+        private async Task OnUserJoined ( SocketGuildUser arg )
+        {
+            throw new NotImplementedException();
+        }
 
-			GuildConfig currentConfig = _guildConfig.FindOne(x => x.GuildId == guild.Id);
-			List<string> whitelist = currentConfig.WhiteList;
+        private async Task OnUserTyping ( SocketUser user, ISocketMessageChannel channel )
+        {
+            SocketGuild guild = ( channel as SocketGuildChannel )?.Guild;
 
-			if (!currentConfig.Irritate || whitelist.Exists(x => x == string.Join(" ", user.Username, user.Discriminator)))
-			{
-				return;
-			}
-			await channel.SendMessageAsync("Ne Yazıyon Lan Amkodum");
-		}
+            GuildConfig currentConfig = _guildConfig.FindOne(x => x.GuildId == guild.Id);
+            var opMode = currentConfig.useWhitelist;
 
-		private Task OnReady (DiscordSocketClient arg)
-		{
-			return Task.CompletedTask;
-		}
+            var checkList = opMode ? currentConfig.WhiteList : currentConfig.BlackList;
 
-		private Task OnLog ( LogMessage arg )
-		{
-			StringBuilder infoString = new StringBuilder();
-			StringBuilder messageString = new StringBuilder();
+            if (currentConfig.Irritate && ( checkList.Exists(x => x == string.Join(" ", user.Username, user.Discriminator)) != opMode ))
+            {
+                var curse = currentConfig.Curses[_randomizer.Next(currentConfig.Curses.Count)];
+                await channel.SendMessageAsync(curse);
+            }
+        }
 
-			infoString.AppendJoin(" ", DateTime.Now.ToString("hh:mm:ss"), arg.Source);
+        private Task OnReady ( DiscordSocketClient arg )
+        {
+            return Task.CompletedTask;
+        }
 
-			messageString.AppendJoin(" ", arg.Message, arg.Exception);
-
-			Console.ForegroundColor = ConsoleColor.Magenta;
-
-			Console.Write(infoString.ToString());
-			Console.ResetColor();
-			Console.WriteLine($"\t {messageString}");
-
-			return Task.CompletedTask;
-		}
-	}
+        private async Task OnLog ( LogMessage arg )
+        {
+            Console.ForegroundColor = _logColor;
+            Console.WriteLine(string.Format("[{0,8}] {1,-10}: {2}", DateTime.Now.ToString("hh: mm:ss"), arg.Source, arg.Message));
+        }
+    }
 }

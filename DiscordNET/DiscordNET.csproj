@@ -4,38 +4,46 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.0</TargetFramework>
     <UserSecretsId>2473bcf9-9992-4154-9a1a-94915377dad0</UserSecretsId>
+    <Platforms>AnyCPU</Platforms>
+    <Configurations>Debug;Release</Configurations>
   </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Data\RocketLeague\**" />
+    <EmbeddedResource Remove="Data\RocketLeague\**" />
+    <None Remove="Data\RocketLeague\**" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Discord.Addons.CommandsExtension" Version="1.0.4" />
     <PackageReference Include="Discord.Addons.Interactive" Version="1.0.1" />
-    <PackageReference Include="Discord.Addons.InteractiveCommands" Version="1.2.4" />
     <PackageReference Include="Discord.Addons.PrefixService" Version="2.0.0" />
-    <PackageReference Include="Discord.Net" Version="2.1.1" />
-    <PackageReference Include="Discord.Net.Commands" Version="2.1.1" />
-    <PackageReference Include="Discord.Net.Core" Version="2.1.1" />
-    <PackageReference Include="Discord.Net.Rest" Version="2.1.1" />
-    <PackageReference Include="Discord.Net.Webhook" Version="2.1.1" />
-    <PackageReference Include="Discord.Net.WebSocket" Version="2.1.1" />
-    <PackageReference Include="HtmlAgilityPack" Version="1.11.18" />
+    <PackageReference Include="Discord.Net" Version="2.2.0" />
+    <PackageReference Include="Discord.Net.Commands" Version="2.2.0" />
+    <PackageReference Include="Discord.Net.Core" Version="2.2.0" />
+    <PackageReference Include="Discord.Net.Rest" Version="2.2.0" />
+    <PackageReference Include="Discord.Net.Webhook" Version="2.2.0" />
+    <PackageReference Include="Discord.Net.WebSocket" Version="2.2.0" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.23" />
     <PackageReference Include="LiteDB" Version="4.1.4" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="3.0.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.1" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.1" />
-    <PackageReference Include="R6Tab.NET" Version="0.3.3" />
-    <PackageReference Include="RestSharp" Version="106.10.1" />
-    <PackageReference Include="Victoria" Version="5.1.2" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="3.1.4" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.4" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.4" />
+    <PackageReference Include="R6Tab.NET" Version="0.4.0" />
+    <PackageReference Include="RestSharp" Version="106.11.3" />
+    <PackageReference Include="Victoria" Version="5.1.3" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Data\RocketLeague\" />
     <Folder Include="Data\Overwatch\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="CSGO_Tracker.NET">
-      <HintPath>..\..\CSGO_Tracker.NET\CSGO_Tracker.NET\bin\Debug\netstandard2.1\CSGO_Tracker.NET.dll</HintPath>
-    </Reference>
   </ItemGroup>
 
 </Project>
