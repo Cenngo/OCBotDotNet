@@ -25,7 +25,6 @@
   <ItemGroup>
     <PackageReference Include="Discord.Addons.CommandsExtension" Version="1.0.4" />
     <PackageReference Include="Discord.Addons.Interactive" Version="1.0.1" />
-    <PackageReference Include="Discord.Addons.InteractiveCommands" Version="1.2.4" />
     <PackageReference Include="Discord.Addons.PrefixService" Version="2.0.0" />
     <PackageReference Include="Discord.Net" Version="2.2.0" />
     <PackageReference Include="Discord.Net.Commands" Version="2.2.0" />
