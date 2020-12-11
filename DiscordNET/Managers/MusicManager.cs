@@ -88,10 +88,11 @@ namespace DiscordNET.Managers
             return Task.CompletedTask;
         }
 
-        private async Task LavaNode_OnLog ( LogMessage arg )
+        private Task LavaNode_OnLog ( LogMessage arg )
         {
             Console.ForegroundColor = _logColor;
             Console.WriteLine(string.Format("[{0,8}] {1,-10}: {2}", DateTime.Now.ToString("hh: mm:ss"), arg.Source, arg.Message));
+            return Task.CompletedTask;
         }
 
         private Task OnTrackStuck ( TrackStuckEventArgs arg )

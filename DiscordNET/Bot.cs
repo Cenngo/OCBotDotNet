@@ -13,7 +13,6 @@ namespace DiscordNET
 {
     public class Bot
     {
-        public Config jsonConfig { get; private set; }
         public DiscordShardedClient _client { get; private set; }
         private Auth _auth;
 
@@ -25,15 +24,7 @@ namespace DiscordNET
             {
                 using (var stream = File.Create("./auth.xml"))
                 {
-                    ser.Serialize(stream, new Auth()
-                    {
-                        GeniusToken = "",
-                        DiscordToken = "",
-                        R6Token = "",
-                        DiscordLogColor = ConsoleColor.Cyan,
-                        VictoriaLogColor = ConsoleColor.Yellow,
-                        LavalinkPort = 2333
-                    });
+                    ser.Serialize(stream, default(Auth));
                 }
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("PLEASE POPULATE THE AUTH FILE THAT CAN BE FOUND IN THE EXECUTION FOLDER!!");
@@ -54,6 +45,14 @@ namespace DiscordNET
             });
 
             await _client.SetActivityAsync(new Game("Prefix: '>', For Help: '>help'", ActivityType.Playing, ActivityProperties.None));
+
+            if(_auth.DiscordToken == string.Empty)
+            {
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.BackgroundColor = ConsoleColor.Red;
+                Console.WriteLine("Bot Token Not Found");
+                return;
+            }
 
             await _client.StartAsync();
             await _client.LoginAsync(TokenType.Bot, _auth.DiscordToken, true);

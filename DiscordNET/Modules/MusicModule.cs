@@ -506,15 +506,6 @@ namespace DiscordNET.Modules
             }
         }
 
-        public async Task QueueSwap ( int first, int second )
-        {
-            if (_lavaNode.TryGetPlayer(Context.Guild, out var player))
-            {
-                var queue = player.Queue;
-
-            }
-        }
-
         [Command("rickroll")]
         [Alias("rr")]
         public async Task Rickroll ( ulong channelId )

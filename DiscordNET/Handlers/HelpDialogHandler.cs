@@ -10,7 +10,7 @@ namespace DiscordNET.Handlers
 {
     public static class HelpDialogHandler
     {
-        public static async Task<Embed> ConstructHelpDialog ( ICommandContext context, int argPos, CommandService commands )
+        public static Embed ConstructHelpDialog ( ICommandContext context, int argPos, CommandService commands )
         {
             SearchResult result = commands.Search(context, argPos);
             if (!result.IsSuccess)
@@ -35,7 +35,7 @@ namespace DiscordNET.Handlers
             {
                 StringBuilder paramString = new StringBuilder();
 
-                foreach (Discord.Commands.ParameterInfo param in command.Command.Parameters)
+                foreach (ParameterInfo param in command.Command.Parameters)
                 {
                     paramString.AppendLine($"`<{param.Name}>` {param.Type.Name} - **Default:** *{param.DefaultValue ?? "null"}* : {param.Summary ?? "`no context`"}");
                 }
