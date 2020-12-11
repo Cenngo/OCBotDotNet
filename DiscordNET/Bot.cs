@@ -24,7 +24,7 @@ namespace DiscordNET
             {
                 using (var stream = File.Create("./auth.xml"))
                 {
-                    ser.Serialize(stream, default(Auth));
+                    ser.Serialize(stream, new Auth());
                 }
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("PLEASE POPULATE THE AUTH FILE THAT CAN BE FOUND IN THE EXECUTION FOLDER!!");

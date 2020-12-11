@@ -73,7 +73,7 @@ namespace DiscordNET.Handlers
                     IResult result = await _commands.ExecuteAsync(context: context, argPos: argPos, services: _services);
                     if (!result.IsSuccess)
                     {
-                        var embed = await HelpDialogHandler.ConstructHelpDialog(context, argPos, _commands);
+                        var embed = HelpDialogHandler.ConstructHelpDialog(context, argPos, _commands);
                         if (embed != null)
                             await context.Message.Channel.SendMessageAsync(embed: embed, text: "This might be helpful:");
                     }
