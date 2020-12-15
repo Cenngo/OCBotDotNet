@@ -32,7 +32,7 @@ namespace DiscordNET.Managers
             _client.GuildAvailable += onGuildAvailable;
         }
 
-        private async Task onGuildAvailable ( SocketGuild arg )
+        private Task onGuildAvailable ( SocketGuild arg )
         {
             var guildId = arg.Id;
             if (!_guildConfig.Exists(x => x.GuildId == guildId))
@@ -48,14 +48,15 @@ namespace DiscordNET.Managers
                     Curses = new List<string> { "Ne Yazıyon Lan Amkodum" },
                 });
             }
+            return Task.CompletedTask;
         }
 
-        private async Task OnJoinedGuild ( SocketGuild arg )
+        private Task OnJoinedGuild ( SocketGuild arg )
         {
             throw new NotImplementedException();
         }
 
-        private async Task OnUserJoined ( SocketGuildUser arg )
+        private Task OnUserJoined ( SocketGuildUser arg )
         {
             throw new NotImplementedException();
         }
@@ -81,10 +82,11 @@ namespace DiscordNET.Managers
             return Task.CompletedTask;
         }
 
-        private async Task OnLog ( LogMessage arg )
+        private Task OnLog ( LogMessage arg )
         {
             Console.ForegroundColor = _logColor;
             Console.WriteLine(string.Format("[{0,8}] {1,-10}: {2}", DateTime.Now.ToString("hh: mm:ss"), arg.Source, arg.Message));
+            return Task.CompletedTask;
         }
     }
 }

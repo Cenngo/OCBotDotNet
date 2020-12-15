@@ -73,8 +73,6 @@ namespace DiscordNET.Modules
         [Summary("Register a new prefix under the current guild")]
         public async Task AddPrefix ( [Summary("Prefix to Add")] string prefix )
         {
-            const int bufferSize = 5;
-
             GuildConfig currentConfig = _guildConfig.FindOne(x => x.GuildId == Context.Guild.Id);
 
             currentConfig.Prefix.Add(prefix);
