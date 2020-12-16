@@ -14,6 +14,7 @@ namespace DiscordNET.Modules
     [RequireOwner]
     public class AdminModule : ModuleBase<ShardedCommandContext>
     {
+        
         public DiscordShardedClient _client;
         public AdminModule(DiscordShardedClient client)
         {

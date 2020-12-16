@@ -26,6 +26,8 @@ namespace DiscordNET.Modules
         private readonly LiteCollection<GuildConfig> _guildConfig;
         private readonly Random _random;
 
+        private readonly Color EmbedColor = Color.Orange;
+
         public MusicModule ( LavaNode lavaNode, MusicManager musicManager, Auth auth, DiscordShardedClient client, LiteCollection<GuildConfig> guildConfig, Random random )
         {
             _musicManager = musicManager;
@@ -51,7 +53,7 @@ namespace DiscordNET.Modules
                 {
                     Title = "",
                     Description = ":bangbang: I'm already connected to a voice channel",
-                    Color = Color.DarkOrange,
+                    Color = EmbedColor,
                 }.AddField("Hint", "To change the voice channel, use the `MOVE` command.", true)
                 .Build());
                 return false;
@@ -65,7 +67,7 @@ namespace DiscordNET.Modules
                 {
                     Title = "",
                     Description = ":bangbang: You need to be connected to a voice channel.",
-                    Color = Color.DarkOrange
+                    Color = EmbedColor
                 }.Build());
                 return false;
             }
@@ -79,7 +81,7 @@ namespace DiscordNET.Modules
                     {
                         Title = "",
                         Description = $":loud_sound: Joined {voiceState.VoiceChannel.Name}!",
-                        Color = Color.DarkOrange
+                        Color = EmbedColor
                     }.Build());
                     return true;
                 }
@@ -92,7 +94,7 @@ namespace DiscordNET.Modules
                 {
                     Title = "",
                     Description = ":bangbang: Something went wrong. :bangbang:",
-                    Color = Color.DarkOrange
+                    Color = EmbedColor
                 }.AddField("Error", exception.Message, true)
                 .Build());
                 return false;
@@ -109,7 +111,7 @@ namespace DiscordNET.Modules
                 {
                     Title = "",
                     Description = $":bangbang: I'm not connected to any voice channels.",
-                    Color = Color.DarkOrange
+                    Color = EmbedColor
                 }.Build());
                 return;
             }
@@ -121,7 +123,7 @@ namespace DiscordNET.Modules
                 {
                     Title = "",
                     Description = $":bangbang: Oh no!",
-                    Color = Color.DarkOrange
+                    Color = EmbedColor
                 }.Build());
                 return;
             }
@@ -133,7 +135,7 @@ namespace DiscordNET.Modules
                 {
                     Title = "",
                     Description = $":white_check_mark: I've left {voiceChannel.Name}!",
-                    Color = Color.DarkOrange
+                    Color = EmbedColor
                 }.Build());
             }
             catch (Exception exception)
@@ -142,7 +144,7 @@ namespace DiscordNET.Modules
                 {
                     Title = "",
                     Description = ":bangbang: Something went wrong. :bangbang:",
-                    Color = Color.DarkOrange
+                    Color = EmbedColor
                 }.AddField("Error", exception.Message, true)
                 .Build());
             }
@@ -159,7 +161,7 @@ namespace DiscordNET.Modules
                 {
                     Title = "",
                     Description = ":bangbang: You need to be connected to a voice channel.",
-                    Color = Color.DarkOrange
+                    Color = EmbedColor
                 }.Build());
                 return;
             }
