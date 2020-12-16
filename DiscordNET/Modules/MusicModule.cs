@@ -49,9 +49,11 @@ namespace DiscordNET.Modules
             {
                 await ReplyAsync(embed: new EmbedBuilder
                 {
-                    Description = "I'm already connected to a voice channel",
-                    Fields = new List<EmbedFieldBuilder> { new EmbedFieldBuilder { IsInline = true, Name = "Hint", Value = "To change the voice channel, use the `MOVE` command." } }
-                }.Build());
+                    Title = "",
+                    Description = ":bangbang: I'm already connected to a voice channel",
+                    Color = Color.DarkOrange,
+                }.AddField("Hint", "To change the voice channel, use the `MOVE` command.", true)
+                .Build());
                 return false;
             }
 
@@ -59,7 +61,12 @@ namespace DiscordNET.Modules
 
             if (voiceState?.VoiceChannel == null)
             {
-                await ReplyAsync("You must be connected to a voice channel!");
+                await ReplyAsync(embed: new EmbedBuilder()
+                {
+                    Title = "",
+                    Description = ":bangbang: You need to be connected to a voice channel.",
+                    Color = Color.DarkOrange
+                }.Build());
                 return false;
             }
 
@@ -68,7 +75,12 @@ namespace DiscordNET.Modules
                 var player = await _lavaNode.JoinAsync(voiceState.VoiceChannel, Context.Channel as ITextChannel);
                 if (player != null)
                 {
-                    await ReplyAsync($"Joined {voiceState.VoiceChannel.Name}!");
+                    await ReplyAsync(embed: new EmbedBuilder()
+                    {
+                        Title = "",
+                        Description = $":loud_sound: Joined {voiceState.VoiceChannel.Name}!",
+                        Color = Color.DarkOrange
+                    }.Build());
                     return true;
                 }
                 else
@@ -76,7 +88,13 @@ namespace DiscordNET.Modules
             }
             catch (Exception exception)
             {
-                await ReplyAsync(exception.Message);
+                await ReplyAsync(embed: new EmbedBuilder()
+                {
+                    Title = "",
+                    Description = ":bangbang: Something went wrong. :bangbang:",
+                    Color = Color.DarkOrange
+                }.AddField("Error", exception.Message, true)
+                .Build());
                 return false;
             }
         }
@@ -87,25 +105,46 @@ namespace DiscordNET.Modules
         {
             if (!_lavaNode.TryGetPlayer(Context.Guild, out LavaPlayer player))
             {
-                await ReplyAsync("I'm not connected to any voice channels!");
+                await ReplyAsync(embed: new EmbedBuilder()
+                {
+                    Title = "",
+                    Description = $":bangbang: I'm not connected to any voice channels.",
+                    Color = Color.DarkOrange
+                }.Build());
                 return;
             }
 
             IVoiceChannel voiceChannel = ( Context.User as IVoiceState ).VoiceChannel ?? player.VoiceChannel;
             if (voiceChannel == null)
             {
-                await ReplyAsync("Not sure which voice channel to disconnect from.");
+                await ReplyAsync(embed: new EmbedBuilder()
+                {
+                    Title = "",
+                    Description = $":bangbang: Oh no!",
+                    Color = Color.DarkOrange
+                }.Build());
                 return;
             }
 
             try
             {
                 await _lavaNode.LeaveAsync(voiceChannel);
-                await ReplyAsync($"I've left {voiceChannel.Name}!");
+                await ReplyAsync(embed: new EmbedBuilder()
+                {
+                    Title = "",
+                    Description = $":white_check_mark: I've left {voiceChannel.Name}!",
+                    Color = Color.DarkOrange
+                }.Build());
             }
             catch (Exception exception)
             {
-                await ReplyAsync(exception.Message);
+                await ReplyAsync(embed: new EmbedBuilder()
+                {
+                    Title = "",
+                    Description = ":bangbang: Something went wrong. :bangbang:",
+                    Color = Color.DarkOrange
+                }.AddField("Error", exception.Message, true)
+                .Build());
             }
         }
 
@@ -116,7 +155,12 @@ namespace DiscordNET.Modules
             IVoiceState voiceState = Context.User as IVoiceState;
             if (voiceState?.VoiceChannel == null)
             {
-                await ReplyAsync("You must be connected to a voice channel!");
+                await ReplyAsync(embed: new EmbedBuilder()
+                {
+                    Title = "",
+                    Description = ":bangbang: You need to be connected to a voice channel.",
+                    Color = Color.DarkOrange
+                }.Build());
                 return;
             }
             await _lavaNode.MoveChannelAsync(voiceState.VoiceChannel);
@@ -551,14 +595,20 @@ namespace DiscordNET.Modules
             await ReplyAsync("Couldn't Find the User");
         }
 
+        [Command("stfu")]
+        public async Task Stfu (string mention)
+        {
+            await Rickroll(mention, "https://www.youtube.com/watch?v=OLpeX4RRo28");
+        }
+
         private async Task PlayRickroll ( IVoiceChannel channel, string customTrack = null )
         {
-            if(customTrack == null || !Uri.TryCreate(customTrack, UriKind.Absolute, out var result))
+            if(!Uri.TryCreate(customTrack, UriKind.Absolute, out var result))
             {
                 await ReplyAsync("Custom track URL is invalid.");
                 return;
             }
-            var search = await _lavaNode.SearchYouTubeAsync("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
+            var search = await _lavaNode.SearchYouTubeAsync(customTrack ?? "https://www.youtube.com/watch?v=dQw4w9WgXcQ");
             if (search.Tracks.Count > 0)
             {
                 if (!_lavaNode.HasPlayer(Context.Guild))
