@@ -515,6 +515,7 @@ namespace DiscordNET.Modules
             }
         }
 
+        [Obsolete("Rickroll by channel is deprecated, please use by mention instead.")]
         [Command("rickroll")]
         [Alias("rr")]
         public async Task Rickroll ( ulong channelId )
@@ -523,7 +524,7 @@ namespace DiscordNET.Modules
             if (channel == null)
                 return;
 
-            await PlayRickroll(channel);
+            await PlayOneShot(channel, "");
         }
 
         [Command("rickroll")]
@@ -537,16 +538,33 @@ namespace DiscordNET.Modules
             {
                 if (channel.Users.Contains(user))
                 {
-                    await PlayRickroll(channel);
+                    await PlayOneShot(channel, "https://www.youtube.com/watch?v=dQw4w9WgXcQ");
                     return;
                 }
             }
             await ReplyAsync("Couldn't Find the User");
         }
 
-        private async Task PlayRickroll ( IVoiceChannel channel )
+        [Command("stfu")]
+        public async Task PinkGuyStfu ( string mention )
         {
-            var search = await _lavaNode.SearchYouTubeAsync("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
+            var user = Context.Message.MentionedUsers.First();
+            var channels = Context.Guild.VoiceChannels;
+
+            foreach (var channel in channels)
+            {
+                if (channel.Users.Contains(user))
+                {
+                    await PlayOneShot(channel, "https://youtu.be/blfEtMAlXfM");
+                    return;
+                }
+            }
+            await ReplyAsync("Couldn't Find the User");
+        }
+
+        private async Task PlayOneShot ( IVoiceChannel channel, string link )
+        {
+            var search = await _lavaNode.SearchYouTubeAsync(link);
             if (search.Tracks.Count > 0)
             {
                 if (!_lavaNode.HasPlayer(Context.Guild))

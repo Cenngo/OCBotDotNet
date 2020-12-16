@@ -60,10 +60,5 @@ namespace DiscordNET.Extensions
             string lyrics = lyricsNode.InnerText;
             return lyrics;
         }
-
-        public static async Task JoinChannel ( this LavaNode lavaNode, ulong channelId )
-        {
-
-        }
     }
 }

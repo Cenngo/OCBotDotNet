@@ -6,11 +6,11 @@ namespace DiscordNET
 {
     public class Auth
     {
-        public string DiscordToken { get; set; }
-        public string GeniusToken { get; set; }
-        public string R6Token { get; set; }
-        public ushort LavalinkPort { get; set; }
-        public ConsoleColor VictoriaLogColor { get; set; }
-        public ConsoleColor DiscordLogColor { get; set; }
+        public string DiscordToken { get; set; } = " ";
+        public string GeniusToken { get; set; } = " ";
+        public string R6Token { get; set; } = " ";
+        public ushort LavalinkPort { get; set; } = 2333;
+        public ConsoleColor VictoriaLogColor { get; set; } = ConsoleColor.Yellow;
+        public ConsoleColor DiscordLogColor { get; set; } = ConsoleColor.Cyan;
     }
 }

@@ -47,19 +47,35 @@ namespace DiscordNET.Handlers
             if (message.Author.IsBot || message.HasMentionPrefix(_client.CurrentUser, ref argPos))
                 return;
 
+            if (context.IsPrivate)
+                await HandleDM(context, argPos);
+            else
+                await HandleGuild(context, argPos);
+        }
+
+        private async Task HandleDM( ICommandContext context, int argPos )
+        {
+            if(context.Message.HasCharPrefix('>', ref argPos)){
+                IResult result = await _commands.ExecuteAsync(context, argPos, _services);
+                return;
+            }
+        }
+
+        private async Task HandleGuild(ICommandContext context, int argPos)
+        {
             GuildConfig currentConfig = _guildConfig.FindOne(x => x.GuildId == context.Guild.Id);
             List<string> prefixes = currentConfig.Prefix;
 
             foreach (string prefix in prefixes)
             {
-                if (message.HasStringPrefix(prefix, ref argPos))
+                if (context.Message.HasStringPrefix(prefix, ref argPos))
                 {
                     IResult result = await _commands.ExecuteAsync(context: context, argPos: argPos, services: _services);
                     if (!result.IsSuccess)
                     {
-                        var embed = await HelpDialogHandler.ConstructHelpDialog(context, argPos, _commands);
+                        var embed = HelpDialogHandler.ConstructHelpDialog(context, argPos, _commands);
                         if (embed != null)
-                            await msg.Channel.SendMessageAsync(embed: embed, text: "This might be helpful:");
+                            await context.Message.Channel.SendMessageAsync(embed: embed, text: "This might be helpful:");
                     }
                     return;
                 }
