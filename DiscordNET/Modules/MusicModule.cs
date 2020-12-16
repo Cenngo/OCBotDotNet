@@ -700,7 +700,7 @@ namespace DiscordNET.Modules
 
         private async Task PlayRickroll ( IVoiceChannel channel, string customTrack = null )
         {
-            if(!Uri.TryCreate(customTrack, UriKind.Absolute, out var result))
+            if(!Uri.TryCreate(customTrack, UriKind.Absolute, out var result) && customTrack != null)
             {
                 await ReplyAsync("Custom track URL is invalid.");
                 return;
