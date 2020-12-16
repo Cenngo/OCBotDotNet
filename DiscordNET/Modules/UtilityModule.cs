@@ -284,5 +284,15 @@ namespace DiscordNET.Modules
             if (_guildConfig.Update(currentConfig))
                 await ReplyAsync("Successfully Updated Operation Mode");
         }
+
+        [Command("randomrr")]
+        public async Task RandomRickroll (bool state)
+        {
+            var currentConfig = _guildConfig.FindOne(x => x.GuildId == Context.Guild.Id);
+
+            currentConfig.RandomRickroll = state;
+            if (_guildConfig.Update(currentConfig))
+                await ReplyAsync("Successfully Updated the Database");
+        }
     }
 }

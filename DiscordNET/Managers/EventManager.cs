@@ -46,6 +46,7 @@ namespace DiscordNET.Managers
                     useWhitelist = true,
                     BlackList = new List<string> { },
                     Curses = new List<string> { "Ne Yazıyon Lan Amkodum" },
+                    RandomRickroll = false,
                 });
             }
             return Task.CompletedTask;

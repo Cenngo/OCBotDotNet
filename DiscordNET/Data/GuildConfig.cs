@@ -15,6 +15,7 @@ namespace DiscordNET.Data
 		public bool useWhitelist { get; set; }
 		public List<string> Prefix { get; set; }
 		public List<string> Curses { get; set; }
+		public bool RandomRickroll { get; set; }
 
 		public GuildConfig ()
         {

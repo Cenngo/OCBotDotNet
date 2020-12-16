@@ -6,6 +6,7 @@ using DiscordNET.Data;
 using DiscordNET.Data.Genius;
 using DiscordNET.Extensions;
 using DiscordNET.Managers;
+using LiteDB;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,13 +23,17 @@ namespace DiscordNET.Modules
         private readonly MusicManager _musicManager;
         private readonly Auth _auth;
         private readonly DiscordShardedClient _client;
+        private readonly LiteCollection<GuildConfig> _guildConfig;
+        private readonly Random _random;
 
-        public MusicModule ( LavaNode lavaNode, MusicManager musicManager, Auth auth, DiscordShardedClient client )
+        public MusicModule ( LavaNode lavaNode, MusicManager musicManager, Auth auth, DiscordShardedClient client, LiteCollection<GuildConfig> guildConfig, Random random )
         {
             _musicManager = musicManager;
             _lavaNode = lavaNode;
             _auth = auth;
             _client = client;
+            _guildConfig = guildConfig;
+            _random = random;
         }
 
         [Command("Join")]
@@ -205,23 +210,34 @@ namespace DiscordNET.Modules
                         return;
                     }
 
-                    if (int.TryParse(response.Content, out int index))
+                    var randomrr = _guildConfig.FindOne(x => x.GuildId == Context.Guild.Id).RandomRickroll;
+                    var random = _random.Next(100);
+
+                    if(random == 1 && randomrr == true)
                     {
-                        if (index > 5 || index < 1)
+                        await PlayRickroll(voiceState.VoiceChannel);
+                        return;
+                    }
+                    else
+                    {
+                        if (int.TryParse(response.Content, out int index))
+                        {
+                            if (index > 5 || index < 1)
+                            {
+                                await Context.Channel.SendMessageAsync("Did not respond correctly");
+                                await Context.Channel.DeleteMessageAsync(searchMessage);
+                                return;
+                            }
+
+                            selectedTrack = searchResponse.Tracks[index - 1];
+                            await Context.Channel.DeleteMessageAsync(searchMessage);
+                        }
+                        else
                         {
                             await Context.Channel.SendMessageAsync("Did not respond correctly");
                             await Context.Channel.DeleteMessageAsync(searchMessage);
                             return;
                         }
-
-                        selectedTrack = searchResponse.Tracks[index - 1];
-                        await Context.Channel.DeleteMessageAsync(searchMessage);
-                    }
-                    else
-                    {
-                        await Context.Channel.SendMessageAsync("Did not respond correctly");
-                        await Context.Channel.DeleteMessageAsync(searchMessage);
-                        return;
                     }
                     break;
                 default:
@@ -508,18 +524,18 @@ namespace DiscordNET.Modules
 
         [Command("rickroll")]
         [Alias("rr")]
-        public async Task Rickroll ( ulong channelId )
+        public async Task Rickroll ( ulong channelId, string customTrack = null )
         {
             var channel = Context.Guild.GetVoiceChannel(channelId);
             if (channel == null)
                 return;
 
-            await PlayRickroll(channel);
+            await PlayRickroll(channel, customTrack);
         }
 
         [Command("rickroll")]
         [Alias("rr")]
-        public async Task Rickroll ( string mention )
+        public async Task Rickroll ( string mention, string customTrack = null )
         {
             var user = Context.Message.MentionedUsers.First();
             var channels = Context.Guild.VoiceChannels;
@@ -528,15 +544,20 @@ namespace DiscordNET.Modules
             {
                 if (channel.Users.Contains(user))
                 {
-                    await PlayRickroll(channel);
+                    await PlayRickroll(channel, customTrack);
                     return;
                 }
             }
             await ReplyAsync("Couldn't Find the User");
         }
 
-        private async Task PlayRickroll ( IVoiceChannel channel )
+        private async Task PlayRickroll ( IVoiceChannel channel, string customTrack = null )
         {
+            if(customTrack == null || !Uri.TryCreate(customTrack, UriKind.Absolute, out var result))
+            {
+                await ReplyAsync("Custom track URL is invalid.");
+                return;
+            }
             var search = await _lavaNode.SearchYouTubeAsync("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
             if (search.Tracks.Count > 0)
             {

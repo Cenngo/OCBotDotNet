@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
+using Discord.WebSocket;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -13,9 +14,10 @@ namespace DiscordNET.Modules
     [RequireOwner]
     public class AdminModule : ModuleBase<ShardedCommandContext>
     {
-        public AdminModule()
+        public DiscordShardedClient _client;
+        public AdminModule(DiscordShardedClient client)
         {
-
+            _client = client;
         }
 
         [Command("log")]
@@ -42,6 +44,17 @@ namespace DiscordNET.Modules
 
                 await ReplyAsync(embed: builder.Build());
             }
+        }
+
+        [Command("latency")]
+        public async Task Latency ( )
+        {
+            await ReplyAsync(embed: new EmbedBuilder()
+            {
+                Title = "Latency",
+                Description = ":clock1: " + _client.Latency.ToString() + "ms",
+                Color = Discord.Color.DarkMagenta
+            }.Build());
         }
     }
 }

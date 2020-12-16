@@ -20,6 +20,7 @@ namespace DiscordNET.Managers
         private readonly LavaConfig _lavaConfig;
         private readonly LavaNode _lavaNode;
         private readonly Auth _auth;
+        private readonly Random _random;
         public ServiceManager ( DiscordShardedClient client = null, CommandService commands = null )
         {
             _client = client ?? new DiscordShardedClient();
@@ -40,6 +41,8 @@ namespace DiscordNET.Managers
                 Port = _auth.LavalinkPort
             };
             _lavaNode = new LavaNode(_client, _lavaConfig);
+
+            _random = new Random(DateTime.Now.Second);
         }
 
         public IServiceProvider BuildServiceProvider ( ) => new ServiceCollection()
@@ -52,6 +55,7 @@ namespace DiscordNET.Managers
             .AddSingleton(_lavaNode)
             .AddSingleton<MusicManager>()
             .AddSingleton(_auth)
+            .AddSingleton(_random)
             .BuildServiceProvider();
     }
 }

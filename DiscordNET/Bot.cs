@@ -51,6 +51,7 @@ namespace DiscordNET
                 Console.ForegroundColor = ConsoleColor.White;
                 Console.BackgroundColor = ConsoleColor.Red;
                 Console.WriteLine("Bot Token Not Found");
+                Console.ResetColor();
                 return;
             }
 
