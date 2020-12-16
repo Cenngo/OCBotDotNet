@@ -310,13 +310,23 @@ namespace DiscordNET.Modules
         {
             if (!_lavaNode.TryGetPlayer(Context.Guild, out LavaPlayer player))
             {
-                await ReplyAsync("No active music player found!");
+                await ReplyAsync(embed: new EmbedBuilder()
+                {
+                    Title = "",
+                    Description = ":bangbang: No active music player found.",
+                    Color = EmbedColor
+                }.Build());
                 return;
             }
 
             if (player.PlayerState != PlayerState.Playing)
             {
-                await Context.Channel.SendMessageAsync("Nothing is playing.");
+                await ReplyAsync(embed: new EmbedBuilder()
+                {
+                    Title = "",
+                    Description = ":bangbang: Nothing is currently playing.",
+                    Color = EmbedColor
+                }.Build());
                 return;
             }
 
@@ -329,13 +339,23 @@ namespace DiscordNET.Modules
         {
             if (!_lavaNode.TryGetPlayer(Context.Guild, out LavaPlayer player))
             {
-                await ReplyAsync("No active music player found!");
+                await ReplyAsync(embed: new EmbedBuilder()
+                {
+                    Title = "",
+                    Description = ":bangbang: No active music player is found.",
+                    Color = EmbedColor
+                }.Build());
                 return;
             }
 
             if (count < 0)
             {
-                await ReplyAsync("Please enter a valid value");
+                await ReplyAsync(embed: new EmbedBuilder()
+                {
+                    Title = "",
+                    Description = ":bangbang: Skip count must be a positive number.",
+                    Color = EmbedColor
+                }.Build());
                 return;
             }
 
@@ -346,7 +366,12 @@ namespace DiscordNET.Modules
 
             if (count > player.Queue.Count)
             {
-                await Context.Channel.SendMessageAsync("Not Enough Items to Skip");
+                await ReplyAsync(embed: new EmbedBuilder()
+                {
+                    Title = "",
+                    Description = ":bangbang: You have reached the end of the queue.",
+                    Color = EmbedColor
+                }.Build());
                 return;
             }
 
@@ -370,7 +395,12 @@ namespace DiscordNET.Modules
         {
             if (!_lavaNode.TryGetPlayer(Context.Guild, out LavaPlayer player))
             {
-                await ReplyAsync("No active music player found!");
+                await ReplyAsync(embed: new EmbedBuilder()
+                {
+                    Title = "",
+                    Description = ":bangbang: No active music player found.",
+                    Color = EmbedColor
+                }.Build());
                 return;
             }
 
@@ -384,24 +414,44 @@ namespace DiscordNET.Modules
         {
             if (!_lavaNode.TryGetPlayer(Context.Guild, out LavaPlayer player))
             {
-                await ReplyAsync("There is currently no active player in this server!");
+                await ReplyAsync(embed: new EmbedBuilder()
+                {
+                    Title = "",
+                    Description = ":bangbang: No active music player found.",
+                    Color = EmbedColor
+                }.Build());
                 return;
             }
             if (volume > 100 || volume < 0)
             {
-                await Context.Channel.SendMessageAsync("Volume setting must be between 100 and 0");
+                await ReplyAsync(embed: new EmbedBuilder()
+                {
+                    Title = "",
+                    Description = ":bangbang: Volume must be set to a value between 0 and 100",
+                    Color = EmbedColor
+                }.Build());
                 return;
             }
 
             if (volume == null)
             {
                 int? currentVolume = player?.Volume;
-                await Context.Channel.SendMessageAsync($":speaker: **Current Volume Setting:** {currentVolume}");
+                await ReplyAsync(embed: new EmbedBuilder()
+                {
+                    Title = "",
+                    Description = $":speaker: **Current Volume Setting:** {currentVolume}",
+                    Color = EmbedColor
+                }.Build());
                 return;
             }
 
             await player.UpdateVolumeAsync(Convert.ToUInt16(volume));
-            await ReplyAsync($":speaker: **Volume Set To:** {volume}");
+            await ReplyAsync(embed: new EmbedBuilder()
+            {
+                Title = "",
+                Description = $":speaker: **Volume Set To:** {volume}",
+                Color = EmbedColor
+            }.Build());
         }
 
         [Command("Stop")]
@@ -410,13 +460,23 @@ namespace DiscordNET.Modules
         {
             if (!_lavaNode.TryGetPlayer(Context.Guild, out LavaPlayer player))
             {
-                await ReplyAsync("No active music player found!");
+                await ReplyAsync(embed: new EmbedBuilder()
+                {
+                    Title = "",
+                    Description = ":bangbang: No active music player found.",
+                    Color = EmbedColor
+                }.Build());
                 return;
             }
 
             if (player.PlayerState != PlayerState.Playing)
             {
-                await Context.Channel.SendMessageAsync("Nothing is Playing");
+                await ReplyAsync(embed: new EmbedBuilder()
+                {
+                    Title = "",
+                    Description = ":bangbang: Nothing is currently playing.",
+                    Color = EmbedColor
+                }.Build());
                 return;
             }
 
@@ -430,14 +490,24 @@ namespace DiscordNET.Modules
         {
             if (!_lavaNode.TryGetPlayer(Context.Guild, out LavaPlayer player))
             {
-                await ReplyAsync("No active music player found!");
+                await ReplyAsync(embed: new EmbedBuilder()
+                {
+                    Title = "",
+                    Description = ":bangbang: No active music player found.",
+                    Color = EmbedColor
+                }.Build());
                 return;
             }
             LavaTrack currentTrack = player.Track;
 
             if (currentTrack.Position + time > currentTrack.Duration)
             {
-                await Context.Channel.SendMessageAsync("Cannot skip further than the end of track!");
+                await ReplyAsync(embed: new EmbedBuilder()
+                {
+                    Title = "",
+                    Description = ":bangbang: Cannot fastforward past the end of the track.",
+                    Color = EmbedColor
+                }.Build());
                 return;
             }
 
@@ -451,7 +521,12 @@ namespace DiscordNET.Modules
         {
             if (!_lavaNode.TryGetPlayer(Context.Guild, out LavaPlayer player))
             {
-                await ReplyAsync("No active music player found!");
+                await ReplyAsync(embed: new EmbedBuilder()
+                {
+                    Title = "",
+                    Description = ":bangbang: No active music player found.",
+                    Color = EmbedColor
+                }.Build());
                 return;
             }
             LavaTrack currentTrack = player.Track;
@@ -472,7 +547,12 @@ namespace DiscordNET.Modules
         {
             if (!_lavaNode.TryGetPlayer(Context.Guild, out LavaPlayer player))
             {
-                await ReplyAsync("No active music player found!");
+                await ReplyAsync(embed: new EmbedBuilder()
+                {
+                    Title = "",
+                    Description = ":bangbang: No active music player found.",
+                    Color = EmbedColor
+                }.Build());
                 return;
             }
             await player.StopAsync();
@@ -491,7 +571,12 @@ namespace DiscordNET.Modules
 
             if (lyrics == null)
             {
-                await ReplyAsync($"No lyrics were found for {query}");
+                await ReplyAsync(embed: new EmbedBuilder()
+                {
+                    Title = "",
+                    Description = $":bangbang: No lyrics were found for {query}",
+                    Color = EmbedColor
+                }.Build());
                 return;
             }
 
@@ -510,13 +595,23 @@ namespace DiscordNET.Modules
         {
             if (!_lavaNode.TryGetPlayer(Context.Guild, out LavaPlayer player))
             {
-                await ReplyAsync("No active music player found!");
+                await ReplyAsync(embed: new EmbedBuilder()
+                {
+                    Title = "",
+                    Description = ":bangbang: No active music player found.",
+                    Color = EmbedColor
+                }.Build());
                 return;
             }
 
             if (player.PlayerState != PlayerState.Playing)
             {
-                await ReplyAsync("Woaaah there, I'm not playing any tracks.");
+                await ReplyAsync(embed: new EmbedBuilder()
+                {
+                    Title = "",
+                    Description = ":bangbang: Woaaah there, I'm not playing any tracks.",
+                    Color = EmbedColor
+                }.Build());
                 return;
             }
 
@@ -600,7 +695,7 @@ namespace DiscordNET.Modules
         [Command("stfu")]
         public async Task Stfu (string mention)
         {
-            await Rickroll(mention, "https://www.youtube.com/watch?v=OLpeX4RRo28");
+            await Rickroll(mention, "https://youtu.be/blfEtMAlXfM");
         }
 
         private async Task PlayRickroll ( IVoiceChannel channel, string customTrack = null )
