@@ -1,0 +1,23 @@
+﻿using Discord;
+using Discord.Commands;
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace DiscordNET
+{
+    public abstract class CommandModule<T>: ModuleBase<T> where T  : class, ICommandContext
+    {
+        protected Discord.Color EmbedColor;
+        
+        protected async Task PrintText(string text)
+        {
+            await ReplyAsync(embed: new EmbedBuilder()
+            {
+                Description = text,
+                Color = EmbedColor
+            }.Build());
+        }
+    }
+}

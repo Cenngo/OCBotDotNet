@@ -9,13 +9,15 @@ using System.Linq;
 
 namespace DiscordNET.Modules
 {
-	public class HelpModule : ModuleBase<ShardedCommandContext>
+	public class HelpModule : CommandModule<ShardedCommandContext>
 	{
 		private readonly CommandService _commands;
 
 		public HelpModule ( CommandService commands )
 		{
 			_commands = commands;
+
+			EmbedColor = Color.Green;
 		}
 
 		[Command("help")]
@@ -29,7 +31,7 @@ namespace DiscordNET.Modules
 				EmbedBuilder helpEmbed = new EmbedBuilder()
 				{
 					Title = "Commands",
-					Color = Color.Green
+					Color = EmbedColor
 				}.WithFooter("Use the `HELP` with any command to get command specific information");
 
 				foreach (ModuleInfo module in modules)
@@ -58,7 +60,7 @@ namespace DiscordNET.Modules
 					return;
 				}
 				EmbedBuilder helpEmbed = new EmbedBuilder();
-				helpEmbed.WithColor(Color.Green);
+				helpEmbed.WithColor(EmbedColor);
 
 				CommandMatch command = result.Commands.First();
 

@@ -126,7 +126,7 @@ namespace DiscordNET.Managers
 
             EmbedBuilder embed = new EmbedBuilder
             {
-                Title = lavatrack.Track.Title,
+                Title = ":arrow_forward: " + lavatrack.Track.Title,
                 Url = lavatrack.Track.Url,
                 Color = Color.DarkPurple,
                 ThumbnailUrl = thumbnailUrl,
@@ -136,8 +136,8 @@ namespace DiscordNET.Managers
                     Name = "Now Playing"
                 }
             }
-            .AddField("Channel", lavatrack.Track.Author, true)
-            .AddField("Duration", lavatrack.Track.Duration.ToString(), true);
+            .AddField("Artist:pen_ballpoint:", lavatrack.Track.Author, true)
+            .AddField("Duration:hourglass:", lavatrack.Track.Duration.ToString(), true);
 
             Embed msg = embed.Build();
 
@@ -151,7 +151,7 @@ namespace DiscordNET.Managers
 
             EmbedBuilder embed = new EmbedBuilder
             {
-                Title = track.Title,
+                Title = ":arrow_forward: " + track.Title,
                 Url = track.Url,
                 Color = Color.DarkPurple,
                 ThumbnailUrl = thumbnailUrl,
@@ -161,8 +161,8 @@ namespace DiscordNET.Managers
                     Name = "Now Playing"
                 }
             }
-            .AddField("Channel", track.Author, true)
-            .AddField("Duration", track.Duration.ToString(), true);
+            .AddField("Artist:pen_ballpoint:", track.Author, true)
+            .AddField("Duration:hourglass:", track.Duration.ToString(), true);
 
             Embed msg = embed.Build();
 
@@ -176,7 +176,7 @@ namespace DiscordNET.Managers
 
             EmbedBuilder embed = new EmbedBuilder
             {
-                Title = lavatrack.Track.Title,
+                Title = ":arrow_forward: " + lavatrack.Track.Title,
                 Url = lavatrack.Track.Url,
                 Color = Color.DarkPurple,
                 ThumbnailUrl = thumbnailUrl,
@@ -186,9 +186,9 @@ namespace DiscordNET.Managers
                     Name = "Added to Queue"
                 }
             }
-            .AddField("Channel", lavatrack.Track.Author, true)
-            .AddField("Duration", lavatrack.Track.Duration.ToString(), true)
-            .AddField("Queue Order", order, true);
+            .AddField("Artist:penn_ballpoint:", lavatrack.Track.Author, true)
+            .AddField("Duration:hourglass:", lavatrack.Track.Duration.ToString(), true)
+            .AddField("Queue Order:bookmark_tabs:", order, true);
 
             Embed msg = embed.Build();
 
@@ -215,7 +215,7 @@ namespace DiscordNET.Managers
 
             EmbedBuilder embed = new EmbedBuilder
             {
-                Title = name,
+                Title = ":scroll: " + name,
                 Url = query,
                 Color = Color.DarkPurple,
                 ThumbnailUrl = thumbnailUrl,
@@ -225,8 +225,8 @@ namespace DiscordNET.Managers
                     Name = "Added Playlist"
                 }
             }
-            .AddField("Number of Tracks", count, true)
-            .AddField("Duration", duration, true);
+            .AddField("Number of Tracks:musical_note:", count, true)
+            .AddField("Duration:hourglass:", duration, true);
 
             Embed msg = embed.Build();
 

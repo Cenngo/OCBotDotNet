@@ -17,7 +17,7 @@ using Victoria.Responses.Rest;
 
 namespace DiscordNET.Modules
 {
-    public class MusicModule : ModuleBase<ShardedCommandContext>
+    public class MusicModule : CommandModule<ShardedCommandContext>
     {
         private readonly LavaNode _lavaNode;
         private readonly MusicManager _musicManager;
@@ -25,8 +25,6 @@ namespace DiscordNET.Modules
         private readonly DiscordShardedClient _client;
         private readonly LiteCollection<GuildConfig> _guildConfig;
         private readonly Random _random;
-
-        private readonly Color EmbedColor = Color.Orange;
 
         public MusicModule ( LavaNode lavaNode, MusicManager musicManager, Auth auth, DiscordShardedClient client, LiteCollection<GuildConfig> guildConfig, Random random )
         {
@@ -36,6 +34,8 @@ namespace DiscordNET.Modules
             _client = client;
             _guildConfig = guildConfig;
             _random = random;
+
+            this.EmbedColor = Color.Blue;
         }
 
         [Command("Join")]
@@ -52,7 +52,7 @@ namespace DiscordNET.Modules
                 await ReplyAsync(embed: new EmbedBuilder
                 {
                     Title = "",
-                    Description = ":bangbang: I'm already connected to a voice channel",
+                    Description = ":stop_sign: I'm already connected to a voice channel",
                     Color = EmbedColor,
                 }.AddField("Hint", "To change the voice channel, use the `MOVE` command.", true)
                 .Build());
@@ -223,14 +223,14 @@ namespace DiscordNET.Modules
                     {
                         Author = new EmbedAuthorBuilder
                         {
-                            Name = "Write just the number of trak. Exp:\" 4 \""
+                            Name = "Only the track number should be written. Exp:`4`"
                         },
-                        Title = "Please Select the Desired Track",
+                        Title = ":mag: Choose a search result.",
                         Description = string.Join("\n", choice),
                         Color = Color.DarkPurple,
                         Footer = new EmbedFooterBuilder
                         {
-                            Text = "Type `cancel` to Cancel the Query"
+                            Text = ":x: Type `cancel` to cancel the query."
                         }
                     }.Build();
 
@@ -243,7 +243,7 @@ namespace DiscordNET.Modules
                         response = await interactive.NextMessage(TimeSpan.FromMinutes(1));
                         if(response == null)
                         {
-                            await ReplyAsync("Did not Respond in Time.");
+                            await PrintText(":hourglass: Search dialog timed out.");
                             await Context.Channel.DeleteMessageAsync(searchMessage);
                             return;
                         }
@@ -251,7 +251,7 @@ namespace DiscordNET.Modules
 
                     if (response.Content.ToLower() == "cancel")
                     {
-                        await Context.Channel.SendMessageAsync("Canceled the  Query");
+                        await PrintText(":white_check_mark: Cancelled the query.");
                         await Context.Channel.DeleteMessageAsync(searchMessage);
                         return;
                     }
@@ -270,7 +270,7 @@ namespace DiscordNET.Modules
                         {
                             if (index > 5 || index < 1)
                             {
-                                await Context.Channel.SendMessageAsync("Did not respond correctly");
+                                await PrintText(":stop_sign: Selected index must be between 1 and 5.");
                                 await Context.Channel.DeleteMessageAsync(searchMessage);
                                 return;
                             }
@@ -280,7 +280,7 @@ namespace DiscordNET.Modules
                         }
                         else
                         {
-                            await Context.Channel.SendMessageAsync("Did not respond correctly");
+                            await PrintText(":stop_sign: Response must be an integer between 1 and 5.");
                             await Context.Channel.DeleteMessageAsync(searchMessage);
                             return;
                         }
@@ -331,6 +331,7 @@ namespace DiscordNET.Modules
             }
 
             await player.PauseAsync();
+            await PrintText($":pause_button: Paused **{player.Track.Title}**");
         }
 
         [Command("skip")]
@@ -362,16 +363,12 @@ namespace DiscordNET.Modules
             if (count == 1 && player.Queue.Count == 0 && player.PlayerState == PlayerState.Playing)
             {
                 await player.StopAsync();
+                await PrintText(":stop_button: That's the end of the queue");
             }
 
             if (count > player.Queue.Count)
             {
-                await ReplyAsync(embed: new EmbedBuilder()
-                {
-                    Title = "",
-                    Description = ":bangbang: You have reached the end of the queue.",
-                    Color = EmbedColor
-                }.Build());
+                await PrintText(":bangbang: You can't skip past the end of the queue");
                 return;
             }
 
@@ -395,12 +392,7 @@ namespace DiscordNET.Modules
         {
             if (!_lavaNode.TryGetPlayer(Context.Guild, out LavaPlayer player))
             {
-                await ReplyAsync(embed: new EmbedBuilder()
-                {
-                    Title = "",
-                    Description = ":bangbang: No active music player found.",
-                    Color = EmbedColor
-                }.Build());
+                await PrintText(":bangbang: No active music player found.");
                 return;
             }
 
@@ -439,7 +431,7 @@ namespace DiscordNET.Modules
                 await ReplyAsync(embed: new EmbedBuilder()
                 {
                     Title = "",
-                    Description = $":speaker: **Current Volume Setting:** {currentVolume}",
+                    Description = $":loud_sound: **Current Volume Setting:** {currentVolume}",
                     Color = EmbedColor
                 }.Build());
                 return;
@@ -449,7 +441,7 @@ namespace DiscordNET.Modules
             await ReplyAsync(embed: new EmbedBuilder()
             {
                 Title = "",
-                Description = $":speaker: **Volume Set To:** {volume}",
+                Description = $":loud_sound: **Volume Set To:** {volume}",
                 Color = EmbedColor
             }.Build());
         }
@@ -512,6 +504,7 @@ namespace DiscordNET.Modules
             }
 
             await player.SeekAsync(currentTrack.Position + time);
+            await PrintText($":fast_forward: Fast forwarded to {currentTrack.Position.ToString(@"hh\:mm\:ss")}");
         }
 
         [Command("rewind")]
@@ -538,6 +531,7 @@ namespace DiscordNET.Modules
             }
 
             await player.SeekAsync(currentTrack.Position - time);
+            await PrintText($":rewind: Rewinded to {currentTrack.Position.ToString(@"hh\:mm\:ss")}");
         }
 
         [Command("dispose")]
@@ -547,16 +541,12 @@ namespace DiscordNET.Modules
         {
             if (!_lavaNode.TryGetPlayer(Context.Guild, out LavaPlayer player))
             {
-                await ReplyAsync(embed: new EmbedBuilder()
-                {
-                    Title = "",
-                    Description = ":bangbang: No active music player found.",
-                    Color = EmbedColor
-                }.Build());
+                await PrintText(":bangbang: No active music player found.");
                 return;
             }
             await player.StopAsync();
             player.Queue.Clear();
+            await PrintText(":wastebasket: Disposed the music player.");
         }
 
         [Command("lyrics")]
@@ -582,7 +572,7 @@ namespace DiscordNET.Modules
 
             GSResult result = track.SearchGenius(_auth.GeniusToken).Response.Hits.First().Result;
 
-            string message = $"**{result.FullTitle.ToUpper()}**\n```ini\n{lyrics}\n```";
+            string message = $":small_blue_diamond:**{result.FullTitle.ToUpper()}**:small_blue_diamond:\n```ini\n{lyrics}\n```";
 
             await ReplyAsync(message);
 
@@ -638,7 +628,7 @@ namespace DiscordNET.Modules
 
                 if (Queue.Count() < 1)
                 {
-                    await ReplyAsync("There are no items in the queue");
+                    await PrintText(":zero: Nothing is queued.");
                     return;
                 }
 
@@ -648,13 +638,19 @@ namespace DiscordNET.Modules
                     description.Add($"**{i + 1}.** `{track.Track.Title}` [{track.Track.Duration}] Added by: {track.User.Username}");
                 }
 
+                TimeSpan estimatedDuration = TimeSpan.Zero;
+                foreach(var track in Queue)
+                {
+                    estimatedDuration += track.Track.Duration;
+                }
+
                 Embed queueEmbed = new EmbedBuilder
                 {
                     Title = $"Queue for {Context.Guild.Name}",
                     Description = string.Join("\n", description),
                     Footer = new EmbedFooterBuilder
                     {
-                        Text = $"Number of Tracks: {Queue.Count()}\tEstimated Duration: "
+                        Text = $"Number of Tracks: {Queue.Count()} \t Estimated Duration: {estimatedDuration.Hours}:{estimatedDuration.Minutes}:{estimatedDuration.Seconds}"
                     },
                     Color = Color.DarkPurple
                 }.Build();
@@ -689,7 +685,7 @@ namespace DiscordNET.Modules
                     return;
                 }
             }
-            await ReplyAsync("Couldn't Find the User");
+            await ReplyAsync(":question: Couldn't Find the User");
         }
 
         [Command("stfu")]
@@ -702,7 +698,7 @@ namespace DiscordNET.Modules
         {
             if(!Uri.TryCreate(customTrack, UriKind.Absolute, out var result) && customTrack != null)
             {
-                await ReplyAsync("Custom track URL is invalid.");
+                await ReplyAsync(":bangang: Custom track URL is invalid.");
                 return;
             }
             var search = await _lavaNode.SearchYouTubeAsync(customTrack ?? "https://www.youtube.com/watch?v=dQw4w9WgXcQ");

@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace DiscordNET.Modules
 {
-    public class UtilityModule : ModuleBase<ShardedCommandContext>
+    public class UtilityModule : CommandModule<ShardedCommandContext>
     {
         private readonly DiscordShardedClient _client;
         private readonly LiteDatabase _database;
@@ -21,6 +21,8 @@ namespace DiscordNET.Modules
             _client = client;
             _database = database;
             _guildConfig = guildConfig;
+
+            this.EmbedColor = Color.Purple;
         }
 
         [Command("delete")]
@@ -30,7 +32,7 @@ namespace DiscordNET.Modules
         {
             if (count > 100)
             {
-                await Context.Channel.SendMessageAsync(":exclamation: You can't delete more than 100 messages at a time");
+                await PrintText(":exclamation: You can't delete more than 100 messages at a time");
                 return;
             }
 
