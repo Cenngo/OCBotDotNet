@@ -186,7 +186,7 @@ namespace DiscordNET.Managers
                     Name = "Added to Queue"
                 }
             }
-            .AddField("Artist:penn_ballpoint:", lavatrack.Track.Author, true)
+            .AddField("Artist:pen_ballpoint:", lavatrack.Track.Author, true)
             .AddField("Duration:hourglass:", lavatrack.Track.Duration.ToString(), true)
             .AddField("Queue Order:bookmark_tabs:", order, true);
 

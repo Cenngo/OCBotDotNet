@@ -635,7 +635,13 @@ namespace DiscordNET.Modules
                 for (int i = 0; i < Queue.Count() && ( scope == "all" || i < 10 ); i++)
                 {
                     var track = Queue.ElementAt(i);
-                    description.Add($"**{i + 1}.** `{track.Track.Title}` [{track.Track.Duration}] Added by: {track.User.Username}");
+                    var index = i + 1;
+                    var title = track.Track.Title;
+                    title = title.Length > 40 ? title.Substring(0, 38) + ".." : title;
+                    var dur = track.Track.Duration;
+                    var user = track.User.Username;
+
+                    description.Add(string.Format("**{0, -2}.**:dvd:`{1, -40}` [{2, 8}] {3, 16}", index, title, dur, ":memo:" + user));
                 }
 
                 TimeSpan estimatedDuration = TimeSpan.Zero;
