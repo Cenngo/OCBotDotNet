@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 namespace DiscordNET.Modules
 {
     [Group("R6")]
-    public class R6Module : ModuleBase<ShardedCommandContext>
+    public class R6Module : CommandModule<ShardedCommandContext>
     {
         private readonly R6Client _r6;
         private readonly Auth _auth;
@@ -26,6 +26,7 @@ namespace DiscordNET.Modules
                 AutoCacheAvoidance = true,
                 ApiKey = _auth.R6Token
             });
+            EmbedColor = Color.DarkTeal;
         }
 
         [Command("profile")]

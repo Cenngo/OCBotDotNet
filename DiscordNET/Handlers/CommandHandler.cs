@@ -37,8 +37,7 @@ namespace DiscordNET.Handlers
 
         private async Task HandleCommandAsync ( SocketMessage msg )
         {
-            SocketUserMessage message = msg as SocketUserMessage;
-            if (message == null) return;
+            if (!( msg is SocketUserMessage message )) return;
 
             int argPos = 0;
 
@@ -56,7 +55,7 @@ namespace DiscordNET.Handlers
         private async Task HandleDM( ICommandContext context, int argPos )
         {
             if(context.Message.HasCharPrefix('>', ref argPos)){
-                IResult result = await _commands.ExecuteAsync(context, argPos, _services);
+                _ = await _commands.ExecuteAsync(context, argPos, _services);
                 return;
             }
         }

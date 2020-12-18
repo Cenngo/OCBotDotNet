@@ -14,7 +14,7 @@ namespace DiscordNET.Managers
         private readonly LiteDatabase _botDB;
         private readonly LiteCollection<GuildConfig> _guildConfig;
         private readonly Random _randomizer;
-        private ConsoleColor _logColor;
+        private readonly ConsoleColor _logColor;
 
         public EventManager ( DiscordShardedClient client, Auth auth )
         {
@@ -29,10 +29,10 @@ namespace DiscordNET.Managers
             _client.UserJoined += OnUserJoined;
             _client.UserIsTyping += OnUserTyping;
             _client.JoinedGuild += OnJoinedGuild;
-            _client.GuildAvailable += onGuildAvailable;
+            _client.GuildAvailable += OnGuildAvailable;
         }
 
-        private Task onGuildAvailable ( SocketGuild arg )
+        private Task OnGuildAvailable ( SocketGuild arg )
         {
             var guildId = arg.Id;
             if (!_guildConfig.Exists(x => x.GuildId == guildId))
@@ -43,7 +43,7 @@ namespace DiscordNET.Managers
                     Irritate = false,
                     WhiteList = new List<string> { },
                     Prefix = new List<string> { ">" },
-                    useWhitelist = true,
+                    UseWhitelist = true,
                     BlackList = new List<string> { },
                     Curses = new List<string> { "Ne Yazıyon Lan Amkodum" },
                     RandomRickroll = false,
@@ -67,7 +67,7 @@ namespace DiscordNET.Managers
             SocketGuild guild = ( channel as SocketGuildChannel )?.Guild;
 
             GuildConfig currentConfig = _guildConfig.FindOne(x => x.GuildId == guild.Id);
-            var opMode = currentConfig.useWhitelist;
+            var opMode = currentConfig.UseWhitelist;
 
             var checkList = opMode ? currentConfig.WhiteList : currentConfig.BlackList;
 

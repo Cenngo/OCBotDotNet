@@ -15,8 +15,10 @@ namespace DiscordNET.Extensions
     {
         public static GeniusSearchResponse SearchGenius ( this LavaTrack lavaTrack, string token )
         {
-            RestClient client = new RestClient($"https://api.genius.com/search");
-            client.Timeout = -1;
+            RestClient client = new RestClient($"https://api.genius.com/search")
+            {
+                Timeout = -1
+            };
             RestRequest request = new RestRequest(Method.GET);
 
             string query = lavaTrack.Title;
@@ -59,6 +61,12 @@ namespace DiscordNET.Extensions
             HtmlNode lyricsNode = html.DocumentNode.SelectSingleNode("//body/routable-page/ng-non-bindable/div[3]/div[1]/div/div[1]/div/p");
             string lyrics = lyricsNode.InnerText;
             return lyrics;
+        }
+
+        public static string GetArtwork(this LavaTrack track )
+        {
+            var videoId = track.Url.Substring(track.Url.Length - 11);
+            return $"https://i.ytimg.com/vi/{videoId}/hqdefault.jpg";
         }
     }
 }

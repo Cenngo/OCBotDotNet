@@ -11,15 +11,10 @@ using System.Threading.Tasks;
 
 namespace DiscordNET.Modules
 {
-	public class InfoModule : ModuleBase<ShardedCommandContext>
+	public class InfoModule : CommandModule<ShardedCommandContext>
 	{
-		private readonly DiscordShardedClient _client;
-		private readonly CommandService _commands;
-
-		public InfoModule ( DiscordShardedClient client, CommandService commands, LiteDatabase database )
+		public InfoModule ( )
 		{
-			_client = client;
-			_commands = commands;
 		}
 
 		[Command("ping")]
@@ -63,7 +58,7 @@ namespace DiscordNET.Modules
 		{
 			UserCollection userData = JsonConvert.DeserializeObject<UserCollection>(File.ReadAllText("users.json"));
 
-			UserData user = userData.userList.FirstOrDefault(x => x.discordID == Context.User.Id);
+			UserData user = userData.UserList.FirstOrDefault(x => x.DiscordID == Context.User.Id);
 			if (user == default(UserData))
 			{
 				await ReplyAsync("User is not registered to a language");
@@ -76,8 +71,8 @@ namespace DiscordNET.Modules
 					Title = $"User: {Context.User}",
 					Color = Color.Orange
 				}
-			.AddField("Handle", user.dHandle, true)
-			.AddField("Language", user.langauge.ToString(), true)
+			.AddField("Handle", user.DHandle, true)
+			.AddField("Language", user.Langauge.ToString(), true)
 			.Build();
 
 				await ReplyAsync(embed: infoEmbed);
@@ -88,7 +83,7 @@ namespace DiscordNET.Modules
 		{
 			UserCollection userData = JsonConvert.DeserializeObject<UserCollection>(File.ReadAllText("users.json"));
 
-			UserData userMatch = userData.userList.FirstOrDefault(x => x.discordID == Context.User.Id);
+			UserData userMatch = userData.UserList.FirstOrDefault(x => x.DiscordID == Context.User.Id);
 			Insult insults = JsonConvert.DeserializeObject<Insult>(File.ReadAllText("insults.json"));
 			//try
 			//{
@@ -104,18 +99,18 @@ namespace DiscordNET.Modules
 			}
 			else if (userMatch != default(UserData))
 			{
-				userMatch.langauge = lang; 
-				await ReplyAsync("User " + userMatch.dHandle + " has been changed as a " + userMatch.langauge + " speaker.");
+				userMatch.Langauge = lang; 
+				await ReplyAsync("User " + userMatch.DHandle + " has been changed as a " + userMatch.Langauge + " speaker.");
 			}
 			else
 			{
 				try
 				{
-					userData.userList.Add(new UserData
+					userData.UserList.Add(new UserData
 					{
-						dHandle = Context.User.Username + "#" + Context.User.Discriminator,
-						discordID = Context.User.Id,
-						langauge = lang
+						DHandle = Context.User.Username + "#" + Context.User.Discriminator,
+						DiscordID = Context.User.Id,
+						Langauge = lang
 					});
 					await ReplyAsync("User " + Context.User.Username + "#" + Context.User.Discriminator + " has been registered as a " + lang + " speaker.");
 				}

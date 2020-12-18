@@ -6,7 +6,7 @@ namespace DiscordNET
 {
 	class Program
 	{
-		static void Main ( string[] args )
+		static void Main ( )
 		{
 			Bot bot = new Bot();
 			bot.MainAsync().GetAwaiter().GetResult();

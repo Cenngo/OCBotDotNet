@@ -12,7 +12,7 @@ using Victoria;
 namespace DiscordNET.Modules
 {
     [RequireOwner]
-    public class AdminModule : ModuleBase<ShardedCommandContext>
+    public class AdminModule : CommandModule<ShardedCommandContext>
     {
         
         public DiscordShardedClient _client;

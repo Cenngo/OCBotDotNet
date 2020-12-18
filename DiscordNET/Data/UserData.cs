@@ -8,19 +8,19 @@ namespace DiscordNET.Data
     public struct UserCollection
     {
         [JsonProperty("Users")]
-        public List<UserData> userList { get; set; }
+        public List<UserData> UserList { get; set; }
     }
     public class UserData
     {
         //FIXME: non-private setters
         [JsonProperty("ID")]
-        public ulong discordID { get; set; }
+        public ulong DiscordID { get; set; }
 
         [JsonProperty("handle")]
-        public string dHandle { get; set; }
+        public string DHandle { get; set; }
 
         [JsonProperty("lang")]
-        public string langauge { get; set; }
+        public string Langauge { get; set; }
 	}
 
     class Insult

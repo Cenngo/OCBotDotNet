@@ -12,15 +12,13 @@ namespace DiscordNET.Modules
 {
     public class UtilityModule : CommandModule<ShardedCommandContext>
     {
-        private readonly DiscordShardedClient _client;
-        private readonly LiteDatabase _database;
         private readonly LiteCollection<GuildConfig> _guildConfig;
+        private readonly Random _random;
 
-        public UtilityModule ( DiscordShardedClient client, LiteDatabase database, LiteCollection<GuildConfig> guildConfig )
+        public UtilityModule (  LiteCollection<GuildConfig> guildConfig, Random random )
         {
-            _client = client;
-            _database = database;
             _guildConfig = guildConfig;
+            _random = random;
 
             this.EmbedColor = Color.Purple;
         }
@@ -47,9 +45,7 @@ namespace DiscordNET.Modules
         [Alias("random")]
         public async Task Dice ( int maxValue = 6 )
         {
-            Random random = new Random(DateTime.Now.Second);
-
-            int randomNumber = random.Next(1, maxValue);
+            int randomNumber = _random.Next(1, maxValue);
 
             await ReplyAsync(randomNumber.ToString());
         }
@@ -162,7 +158,7 @@ namespace DiscordNET.Modules
 
         [Command("checklist add")]
         [Summary("Add a Person to the whitelist to be excluded from bot activities that are meant to irritate people")]
-        public async Task AddWhitelist ( [Summary("List to perform the operation on: blacklist/whitelist")] string list, [Summary("Mention the users to be effected by the change")] params string[] mentions )
+        public async Task AddWhitelist ( [Summary("List to perform the operation on: blacklist/whitelist")] string list, [Summary("Mention the users to be effected by the change")] params string[] _ )
         {
             StringBuilder successString = new StringBuilder();
             StringBuilder conflictString = new StringBuilder();
@@ -237,7 +233,7 @@ namespace DiscordNET.Modules
 
         [Command("checklist remove")]
         [Summary("Remove a Person to the whitelist to be excluded from bot activities that are meant to irritate people")]
-        public async Task RemoveWhitelist ( [Summary("List to perform the operation on: blacklist/whitelist")] string list, [Summary("Mention the users to be effected by the change")] params string[] mentions )
+        public async Task RemoveWhitelist ( [Summary("List to perform the operation on: blacklist/whitelist")] string list, [Summary("Mention the users to be effected by the change")] params string[] _ )
         {
             GuildConfig currentConfig = _guildConfig.FindOne(x => x.GuildId == Context.Guild.Id);
 
@@ -282,7 +278,7 @@ namespace DiscordNET.Modules
                 await ReplyAsync("Invalid List Selection Parameter.");
                 return;
             }
-            currentConfig.useWhitelist = ( "blacklist" == mode ) ? false : true;
+            currentConfig.UseWhitelist = "blacklist" != mode;
             if (_guildConfig.Update(currentConfig))
                 await ReplyAsync("Successfully Updated Operation Mode");
         }

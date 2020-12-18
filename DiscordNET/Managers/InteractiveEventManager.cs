@@ -12,16 +12,16 @@ namespace DiscordNET.Managers
         private SocketMessage _message = null;
         private EventWaitHandle _handle;
 
-        private ICommandContext context;
-        private bool fromSourceUser;
-        private bool fromSourceChannel;
+        private readonly ICommandContext _context;
+        private readonly bool _fromSourceUser;
+        private readonly bool _fromSourceChannel;
         public InteractiveEventManager ( ICommandContext context, bool fromSourceUser, bool fromSourceChannel )
         {
             _client = context.Client.GetType() == typeof(DiscordSocketClient) ? context.Client as DiscordSocketClient
                 : ( context.Client as DiscordShardedClient ).GetShardFor(context.Guild);
-            this.context = context;
-            this.fromSourceChannel = fromSourceChannel;
-            this.fromSourceUser = fromSourceUser;
+            this._context = context;
+            this._fromSourceChannel = fromSourceChannel;
+            this._fromSourceUser = fromSourceUser;
         }
 
         public void Dispose ( )
@@ -33,20 +33,22 @@ namespace DiscordNET.Managers
         {
             _handle = new EventWaitHandle(false, EventResetMode.ManualReset);
             _client.MessageReceived += OnMessage;
+            await Task.CompletedTask;
 
             _handle.WaitOne(duration);
             _handle.Close();
             return _message;
         }
 
-        private async Task OnMessage ( SocketMessage msg )
+        private Task OnMessage ( SocketMessage msg )
         {
-            if (( !fromSourceChannel || ( msg.Channel == context.Channel ) ) && ( !fromSourceUser || ( msg.Author == context.User ) ))
+            if (( !_fromSourceChannel || ( msg.Channel == _context.Channel ) ) && ( !_fromSourceUser || ( msg.Author == _context.User ) ))
             {
                 _message = msg;
                 _handle.Set();
                 _client.MessageReceived -= OnMessage;
             }
+            return Task.CompletedTask;
         }
     }
 }

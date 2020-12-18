@@ -13,8 +13,8 @@ namespace DiscordNET
 {
     public class Bot
     {
-        public DiscordShardedClient _client { get; private set; }
-        private Auth _auth;
+        public DiscordShardedClient Client { get; private set; }
+        private readonly Auth _auth;
 
         public Bot ( )
         {
@@ -32,19 +32,19 @@ namespace DiscordNET
                 Environment.Exit(0);
             }
 
-            using (var reader = new FileStream("auth.xml", FileMode.Open))
-                _auth = (Auth)ser.Deserialize(reader);
+            using var reader = new FileStream("auth.xml", FileMode.Open);
+            _auth = (Auth)ser.Deserialize(reader);
         }
 
         public async Task MainAsync ( )
         {
-            _client = new DiscordShardedClient(new DiscordSocketConfig
+            Client = new DiscordShardedClient(new DiscordSocketConfig
             {
                 LogLevel = LogSeverity.Debug,
                 TotalShards = 5
             });
 
-            await _client.SetActivityAsync(new Game("Prefix: '>', For Help: '>help'", ActivityType.Playing, ActivityProperties.None));
+            await Client.SetActivityAsync(new Game("Prefix: '>', For Help: '>help'", ActivityType.Playing, ActivityProperties.None));
 
             if(_auth.DiscordToken == string.Empty)
             {
@@ -55,8 +55,8 @@ namespace DiscordNET
                 return;
             }
 
-            await _client.StartAsync();
-            await _client.LoginAsync(TokenType.Bot, _auth.DiscordToken, true);
+            await Client.StartAsync();
+            await Client.LoginAsync(TokenType.Bot, _auth.DiscordToken, true);
 
             CommandService _commands = new CommandService(new CommandServiceConfig
             {
@@ -65,12 +65,12 @@ namespace DiscordNET
                 LogLevel = LogSeverity.Debug
             });
 
-            ServiceManager serviceManager = new ServiceManager(_client, _commands);
-            EventManager eventManager = new EventManager(_client, _auth);
+            ServiceManager serviceManager = new ServiceManager(Client, _commands);
+            _ = new EventManager(Client, _auth);
 
             IServiceProvider _services = serviceManager.BuildServiceProvider();
 
-            CommandHandler handler = new CommandHandler(_client, _commands, _services);
+            _ = new CommandHandler(Client, _commands, _services);
 
             await Task.Delay(-1);
         }

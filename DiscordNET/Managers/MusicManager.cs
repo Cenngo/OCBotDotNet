@@ -2,6 +2,7 @@
 using Discord.Commands;
 using Discord.WebSocket;
 using DiscordNET.Data;
+using DiscordNET.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,9 +20,9 @@ namespace DiscordNET.Managers
     {
         private readonly DiscordShardedClient _client;
         private readonly LavaNode _lavaNode;
-        private Dictionary<LavaPlayer, DateTime> _playerTimeStamps;
-        private Timer _timer;
-        private ConsoleColor _logColor;
+        private readonly Dictionary<LavaPlayer, DateTime> _playerTimeStamps;
+        private readonly Timer _timer;
+        private readonly ConsoleColor _logColor;
 
         public MusicManager ( DiscordShardedClient client, LavaNode lavaNode, Auth auth )
         {
@@ -58,9 +59,7 @@ namespace DiscordNET.Managers
                 if (player.PlayerState != PlayerState.Playing)
                 {
                     if (!_playerTimeStamps.ContainsKey(player))
-                    {
                         _playerTimeStamps.Add(player, DateTime.Now);
-                    }
                 }
                 else if (player.PlayerState == PlayerState.Playing)
                 {
@@ -72,7 +71,7 @@ namespace DiscordNET.Managers
 
         private async Task OnPLayerUpdate ( PlayerUpdateEventArgs arg )
         {
-            IChannel voiceChannel = arg.Player.VoiceChannel as IChannel;
+            IChannel voiceChannel = arg.Player.VoiceChannel;
 
             IEnumerable<IUser> users = await voiceChannel.GetUsersAsync().FlattenAsync();
             if (users.Count(x => !x.IsBot) == 0)
@@ -99,7 +98,11 @@ namespace DiscordNET.Managers
         {
             LavaPlayer player = arg.Player;
             player.StopAsync();
-            player.TextChannel.SendMessageAsync("Encountered a problem while playing");
+            player.TextChannel.SendMessageAsync(embed: new EmbedBuilder()
+            {
+                Description = ":bangbang: There seems to be a problem with this track",
+                Color = Color.Red
+            }.Build());
 
             return Task.CompletedTask;
         }
@@ -121,8 +124,7 @@ namespace DiscordNET.Managers
 
         public async Task MusicEmbed ( LavaTrackWithUser lavatrack )
         {
-            string videoId = lavatrack.Track.Url.Substring(lavatrack.Track.Url.Length - 11);
-            string thumbnailUrl = $"https://i.ytimg.com/vi/{videoId}/hqdefault.jpg";
+            string thumbnailUrl = lavatrack.Track.GetArtwork();
 
             EmbedBuilder embed = new EmbedBuilder
             {
@@ -146,8 +148,7 @@ namespace DiscordNET.Managers
 
         public async Task MusicEmbed ( LavaTrack track, ShardedCommandContext context )
         {
-            string videoId = track.Url.Substring(track.Url.Length - 11);
-            string thumbnailUrl = $"https://i.ytimg.com/vi/{videoId}/hqdefault.jpg";
+            string thumbnailUrl = track.GetArtwork();
 
             EmbedBuilder embed = new EmbedBuilder
             {
@@ -171,8 +172,7 @@ namespace DiscordNET.Managers
 
         public async Task QueueEmbed ( LavaTrackWithUser lavatrack, int order )
         {
-            string videoId = lavatrack.Track.Url.Substring(lavatrack.Track.Url.Length - 11);
-            string thumbnailUrl = $"https://i.ytimg.com/vi/{videoId}/hqdefault.jpg";
+            string thumbnailUrl = lavatrack.Track.GetArtwork();
 
             EmbedBuilder embed = new EmbedBuilder
             {
@@ -204,8 +204,7 @@ namespace DiscordNET.Managers
             TimeSpan duration = TimeSpan.Zero;
             int count = 0;
 
-            string videoId = track.Url.Substring(track.Url.Length - 11);
-            string thumbnailUrl = $"https://i.ytimg.com/vi/{videoId}/hqdefault.jpg";
+            string thumbnailUrl = track.GetArtwork();
 
             foreach (LavaTrack item in results.Tracks)
             {

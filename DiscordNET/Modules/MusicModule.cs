@@ -22,16 +22,14 @@ namespace DiscordNET.Modules
         private readonly LavaNode _lavaNode;
         private readonly MusicManager _musicManager;
         private readonly Auth _auth;
-        private readonly DiscordShardedClient _client;
         private readonly LiteCollection<GuildConfig> _guildConfig;
         private readonly Random _random;
 
-        public MusicModule ( LavaNode lavaNode, MusicManager musicManager, Auth auth, DiscordShardedClient client, LiteCollection<GuildConfig> guildConfig, Random random )
+        public MusicModule ( LavaNode lavaNode, MusicManager musicManager, Auth auth, LiteCollection<GuildConfig> guildConfig, Random random )
         {
             _musicManager = musicManager;
             _lavaNode = lavaNode;
             _auth = auth;
-            _client = client;
             _guildConfig = guildConfig;
             _random = random;
 
@@ -504,7 +502,7 @@ namespace DiscordNET.Modules
             }
 
             await player.SeekAsync(currentTrack.Position + time);
-            await PrintText($":fast_forward: Fast forwarded to {currentTrack.Position.ToString(@"hh\:mm\:ss")}");
+            await PrintText($":fast_forward: Fast forwarded to {currentTrack.Position:hh\\:mm\\:ss}");
         }
 
         [Command("rewind")]
@@ -531,7 +529,7 @@ namespace DiscordNET.Modules
             }
 
             await player.SeekAsync(currentTrack.Position - time);
-            await PrintText($":rewind: Rewinded to {currentTrack.Position.ToString(@"hh\:mm\:ss")}");
+            await PrintText($":rewind: Rewinded to {currentTrack.Position:hh\\:mm\\:ss}");
         }
 
         [Command("dispose")]
@@ -678,7 +676,7 @@ namespace DiscordNET.Modules
 
         [Command("rickroll")]
         [Alias("rr")]
-        public async Task Rickroll ( string mention, string customTrack = null )
+        public async Task Rickroll ( [Name("mentions")]string _, string customTrack = null )
         {
             var user = Context.Message.MentionedUsers.First();
             var channels = Context.Guild.VoiceChannels;
@@ -697,17 +695,19 @@ namespace DiscordNET.Modules
         [Command("stfu")]
         public async Task Stfu (string mention)
         {
-            await Rickroll(mention, "https://youtu.be/blfEtMAlXfM");
+            await Rickroll(mention, "https://www.youtube.com/watch?v=OLpeX4RRo28");
         }
 
         private async Task PlayRickroll ( IVoiceChannel channel, string customTrack = null )
         {
-            if(!Uri.TryCreate(customTrack, UriKind.Absolute, out var result) && customTrack != null)
+            if (!Uri.TryCreate(customTrack, UriKind.Absolute, out _) && customTrack != null)
             {
-                await ReplyAsync(":bangang: Custom track URL is invalid.");
+                await ReplyAsync(":bangbang: Custom track URL is invalid.");
                 return;
             }
-            var search = await _lavaNode.SearchYouTubeAsync(customTrack ?? "https://www.youtube.com/watch?v=dQw4w9WgXcQ");
+            var url = customTrack ?? "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+            var search = await _lavaNode.SearchYouTubeAsync(url);
+
             if (search.Tracks.Count > 0)
             {
                 if (!_lavaNode.HasPlayer(Context.Guild))
@@ -720,6 +720,8 @@ namespace DiscordNET.Modules
                     await _lavaNode.MoveChannelAsync(channel);
                     if (_lavaNode.TryGetPlayer(Context.Guild, out var player))
                     {
+                        if (player.PlayerState == PlayerState.Playing)
+                            await player.StopAsync();
                         await player.PlayAsync(search.Tracks[0]);
                     }
                 }

@@ -18,7 +18,6 @@ namespace DiscordNET.Managers
         private readonly LiteDatabase _botDB;
         private readonly LiteCollection<GuildConfig> _guildConfig;
         private readonly LavaConfig _lavaConfig;
-        private readonly LavaNode _lavaNode;
         private readonly Auth _auth;
         private readonly Random _random;
         public ServiceManager ( DiscordShardedClient client = null, CommandService commands = null )
@@ -36,11 +35,11 @@ namespace DiscordNET.Managers
             {
                 LogSeverity = Discord.LogSeverity.Debug,
                 ResumeTimeout = new TimeSpan(0, 2, 0),
-                SelfDeaf = false,
+                SelfDeaf = true,
                 EnableResume = true,
-                Port = _auth.LavalinkPort
+                Port = _auth.LavalinkPort,
+                ReconnectAttempts = 10
             };
-            _lavaNode = new LavaNode(_client, _lavaConfig);
 
             _random = new Random(DateTime.Now.Second);
         }
@@ -50,12 +49,11 @@ namespace DiscordNET.Managers
             .AddSingleton(_commands)
             .AddSingleton(_botDB)
             .AddSingleton(_guildConfig)
-            .AddSingleton<CommandHandler>()
             .AddSingleton(_lavaConfig)
-            .AddSingleton(_lavaNode)
             .AddSingleton<MusicManager>()
             .AddSingleton(_auth)
             .AddSingleton(_random)
+            .AddSingleton<LavaNode>()
             .BuildServiceProvider();
     }
 }

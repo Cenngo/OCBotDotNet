@@ -24,7 +24,7 @@ namespace DiscordNET.Handlers
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
             request.Method = "GET";
             request.ContentType = "application/json";
-            using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
+            using (HttpWebResponse response = await request.GetResponseAsync() as HttpWebResponse)
             using (Stream stream = response.GetResponseStream())
             using (StreamReader sr = new StreamReader(stream))
                 html = sr.ReadToEnd();
@@ -37,7 +37,7 @@ namespace DiscordNET.Handlers
         /// </summary>
         /// <param name="AllHeroes">Dictionary of hereos</param>
         /// <returns>Best <c>OwHero</c></returns>
-        public async Task<string> SortHero(Dictionary<string, OwHero> AllHeroes)
+        public string SortHero(Dictionary<string, OwHero> AllHeroes)
         {
             int mostValue = 0;
             string best = string.Empty;

@@ -14,7 +14,7 @@ namespace DiscordNET.Modules
     /// Module of a collection of commands related to Overwatch
     /// </summary>
     [Group("OW")]
-    public class OWCommands : ModuleBase<ShardedCommandContext>
+    public class OWCommands : CommandModule<ShardedCommandContext>
     {
         /// <summary>
         /// Prints a summary of the player's profile
@@ -37,8 +37,8 @@ namespace DiscordNET.Modules
                 if (!stats.Priv){
                     Dictionary<string, OwHero> comp = stats.CompStats.AllHeroes;
                     Dictionary<string, OwHero> qp = stats.CompStats.AllHeroes;
-                    string bestComp = await OW.SortHero(comp);
-                    string bestQP = await OW.SortHero(qp);
+                    string bestComp = OW.SortHero(comp);
+                    string bestQP = OW.SortHero(qp);
                     
                     Embed infoEmbed = new EmbedBuilder()
                     {

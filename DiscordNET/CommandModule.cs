@@ -9,7 +9,7 @@ namespace DiscordNET
 {
     public abstract class CommandModule<T>: ModuleBase<T> where T  : class, ICommandContext
     {
-        protected Discord.Color EmbedColor;
+        protected Discord.Color EmbedColor = Color.Default;
         
         protected async Task PrintText(string text)
         {

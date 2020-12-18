@@ -19,16 +19,14 @@ using Victoria.Responses.Rest;
 namespace DiscordNET.Modules
 {
 	[Group("Playlist")]
-	public class PlaylistModule : ModuleBase<ShardedCommandContext>
+	public class PlaylistModule : CommandModule<ShardedCommandContext>
 	{
-		private readonly MusicManager _musicManager;
-		private LiteDatabase _database;
-		private LiteCollection<DBPlaylistGuild> _playlistCollection;
+		private readonly LiteDatabase _database;
+		private readonly LiteCollection<DBPlaylistGuild> _playlistCollection;
 		private readonly LavaNode _lavaNode;
 
-		public PlaylistModule(MusicManager musicManager, LiteDatabase database, LavaNode lavaNode)
+		public PlaylistModule( LiteDatabase database, LavaNode lavaNode)
 		{
-			_musicManager = musicManager;
 			_database = database;
 			_playlistCollection = _database.GetCollection<DBPlaylistGuild>("playlistGuilds");
 			_lavaNode = lavaNode;
@@ -46,11 +44,12 @@ namespace DiscordNET.Modules
 					return;
 				}
 
-				List<LavaTrack> list = new List<LavaTrack>();
+                List<LavaTrack> list = new List<LavaTrack>
+                {
+                    player.Track
+                };
 
-				list.Add(player.Track);
-
-				foreach (var item in queue)
+                foreach (var item in queue)
 				{
 					list.Add(((LavaTrackWithUser) item).Track);
 				}
