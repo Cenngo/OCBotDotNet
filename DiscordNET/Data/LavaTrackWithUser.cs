@@ -1,24 +1,17 @@
 ﻿using Discord;
-using System;
-using System.Collections.Generic;
-using System.Resources;
-using System.Text;
 using Victoria;
-using Victoria.Interfaces;
 
 namespace DiscordNET.Data
 {
-	public class LavaTrackWithUser : IQueueable
-	{
-		public IUser User { get; private set; }
-		public LavaTrack Track { get; private set; }
-		public IChannel Channel { get; private set; }
+    public class LavaTrackWithUser : LavaTrack
+    {
+        public IUser User { get; }
+        public IChannel TextChannel { get; }
 
-		public LavaTrackWithUser(LavaTrack lavaTrack, IUser user, IChannel textChannel)
-		{
-			User = user;
-			Track = lavaTrack;
-			Channel = textChannel;
-		}
-	}
+        public LavaTrackWithUser ( LavaTrack lavaTrack, IUser user, IChannel textChannel ) : base(lavaTrack)
+        {
+            User = user;
+            TextChannel = textChannel;
+        }
+    }
 }

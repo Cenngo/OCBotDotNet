@@ -4,6 +4,7 @@ using DiscordNET.Data;
 using DiscordNET.Handlers;
 using LiteDB;
 using Microsoft.Extensions.DependencyInjection;
+using SpotifyAPI.Web;
 using System;
 using System.IO;
 using System.Xml.Serialization;
@@ -20,6 +21,7 @@ namespace DiscordNET.Managers
         private readonly LavaConfig _lavaConfig;
         private readonly Auth _auth;
         private readonly Random _random;
+        private readonly SpotifyClientConfig _spotifyConfig;
         public ServiceManager ( DiscordShardedClient client = null, CommandService commands = null )
         {
             _client = client ?? new DiscordShardedClient();
@@ -38,10 +40,12 @@ namespace DiscordNET.Managers
                 SelfDeaf = true,
                 EnableResume = true,
                 Port = _auth.LavalinkPort,
-                ReconnectAttempts = 10
+                ReconnectAttempts = 10,
             };
 
             _random = new Random(DateTime.Now.Second);
+            _spotifyConfig = SpotifyClientConfig.CreateDefault().
+                WithAuthenticator(new ClientCredentialsAuthenticator("560f7c2b97f54d429ec5fb926edafc89", "ab2eabd7aa894ea3b69b19f1a738948a"));
         }
 
         public IServiceProvider BuildServiceProvider ( ) => new ServiceCollection()
@@ -50,10 +54,12 @@ namespace DiscordNET.Managers
             .AddSingleton(_botDB)
             .AddSingleton(_guildConfig)
             .AddSingleton(_lavaConfig)
+            .AddSingleton(_spotifyConfig)
             .AddSingleton<MusicManager>()
             .AddSingleton(_auth)
             .AddSingleton(_random)
             .AddSingleton<LavaNode>()
+            .AddSingleton<SpotifyClient>()
             .BuildServiceProvider();
     }
 }

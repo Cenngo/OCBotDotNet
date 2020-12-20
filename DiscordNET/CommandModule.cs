@@ -19,5 +19,15 @@ namespace DiscordNET
                 Color = EmbedColor
             }.Build());
         }
+
+        protected async Task PrintText(string title, string text )
+        {
+            await ReplyAsync(embed: new EmbedBuilder()
+            {
+                Title = title,
+                Description = text,
+                Color = EmbedColor
+            }.Build());
+        }
     }
 }

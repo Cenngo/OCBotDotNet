@@ -2,6 +2,7 @@
 using Discord.Commands;
 using Discord.WebSocket;
 using DiscordNET.Data;
+using DiscordNET.GeneralUtility;
 using LiteDB;
 using System;
 using System.Collections.Generic;
@@ -20,7 +21,7 @@ namespace DiscordNET.Modules
             _guildConfig = guildConfig;
             _random = random;
 
-            this.EmbedColor = Color.Purple;
+            this.EmbedColor = Color.Magenta;
         }
 
         [Command("delete")]
@@ -47,7 +48,7 @@ namespace DiscordNET.Modules
         {
             int randomNumber = _random.Next(1, maxValue);
 
-            await ReplyAsync(randomNumber.ToString());
+            await PrintText("Random roll returned: " + randomNumber.ToString());
         }
 
         [Command("prefix list")]
@@ -64,7 +65,7 @@ namespace DiscordNET.Modules
                 replyString.Append(string.Concat("`", item, "`\t"));
             }
 
-            await ReplyAsync(replyString.ToString());
+            await PrintText(":link: Active Prefixes for this guild.", replyString.ToString());
         }
 
         [Command("prefix add")]
@@ -76,7 +77,7 @@ namespace DiscordNET.Modules
             currentConfig.Prefix.Add(prefix);
             if (_guildConfig.Update(currentConfig))
             {
-                await ReplyAsync($"Successfully Added `{prefix}` prefix");
+                await PrintText($":white_check_mark: Successfully added `{prefix}` to guild prefixes");
             }
         }
 
@@ -86,7 +87,7 @@ namespace DiscordNET.Modules
         {
             if (_guildConfig.FindOne(x => x.GuildId == Context.Guild.Id).Prefix.Count <= 1)
             {
-                await ReplyAsync("You cannot have less than 1 prefix registered to the guild.");
+                await PrintText(":stop_sign: You cannot have less than 1 prefix registered to the guild.");
                 return;
             }
 
@@ -94,11 +95,11 @@ namespace DiscordNET.Modules
 
             if (!currentConfig.Prefix.Remove(prefix))
             {
-                await ReplyAsync("An Error Has Occured During Removel Process!");
+                await PrintText(":bangbang: An error occured during the removal process.");
                 return;
             }
-            _guildConfig.Update(currentConfig);
-            await ReplyAsync($"Successfully Removed `{prefix}` prefix");
+            if(_guildConfig.Update(currentConfig))
+                await PrintText($":white_check_mark: Successfully removed `{prefix}` from guild prefixes");
         }
 
         [Command("irritate set")]
@@ -109,7 +110,7 @@ namespace DiscordNET.Modules
 
             currentConfig.Irritate = state;
             _guildConfig.Update(currentConfig);
-            await ReplyAsync($"Successfully Changed Irritation Mode to `{state}`");
+            await PrintText($":white_check_mark: Successfully updated the `Irritate Setting` to {state}");
         }
 
         [Command("curse add")]
@@ -119,14 +120,14 @@ namespace DiscordNET.Modules
 
             if (currentConfig.Curses.Exists(x => x == curse))
             {
-                await ReplyAsync("Overlapping Curse Word");
+                await PrintText(":stop_sign: This curse word is already registered.");
                 return;
             }
 
             currentConfig.Curses.Add(curse);
 
             if (_guildConfig.Update(currentConfig))
-                await ReplyAsync("Successfully Added Swear Word");
+                await PrintText(":white_check_mark: Succeessfully added the curse word.");
         }
 
         [Command("curse remove")]
@@ -136,7 +137,7 @@ namespace DiscordNET.Modules
             if (currentConfig.Curses.Remove(curse))
             {
                 if (_guildConfig.Update(currentConfig))
-                    await ReplyAsync("Successfully Removed Swear Word");
+                    await PrintText(":white_check_mark: Succeessfully removed the curse word.");
             }
         }
 
@@ -153,7 +154,7 @@ namespace DiscordNET.Modules
                 replyString.Append(curse + "\n");
             }
 
-            await ReplyAsync($"**CURSES:**\n{replyString}");
+            await PrintText(":anger: Guild Curse Words", replyString.ToString());
         }
 
         [Command("checklist add")]
@@ -167,7 +168,7 @@ namespace DiscordNET.Modules
 
             if (list != "blacklist" && list != "whitelist")
             {
-                await ReplyAsync("Invalid List Selection Parameter.");
+                await PrintText(":bangbang: You need select either the `whitelist` or the `blacklist` in order to use this command.");
                 return;
             }
             List<string> checklist = ( list == "blacklist" ) ? currentConfig.BlackList : currentConfig.WhiteList;
@@ -204,8 +205,11 @@ namespace DiscordNET.Modules
                 }
             }
 
-            if (successString.Length != 0) await ReplyAsync($"{successString} Whitelisted");
-            if (conflictString.Length != 0) await ReplyAsync($"{conflictString} Already Whitelisted");
+            if (!string.IsNullOrEmpty(successString.ToString()))
+                await PrintText(":white_circle: Whitelisted", successString.ToString());
+
+            if (!string.IsNullOrEmpty(conflictString.ToString()))
+                await PrintText(":x: Was already whitelisted", conflictString.ToString());
         }
 
         [Command("checklist list")]
@@ -216,7 +220,7 @@ namespace DiscordNET.Modules
 
             if (list != "blacklist" && list != "whitelist")
             {
-                await ReplyAsync("Invalid List Selection Parameter.");
+                await PrintText(":bangbang: You need select either the `whitelist` or the `blacklist` in order to use this command.");
                 return;
             }
             List<string> checklist = ( list == "blacklist" ) ? currentConfig.BlackList : currentConfig.WhiteList;
@@ -227,8 +231,7 @@ namespace DiscordNET.Modules
             {
                 replyString.Append(string.Concat("`", user, "`\n"));
             }
-
-            await ReplyAsync($"**{list.ToUpper()}:**\n{replyString}");
+            await PrintText($"Guild {list.CaptFirst()}", replyString.ToString());
         }
 
         [Command("checklist remove")]
@@ -244,7 +247,7 @@ namespace DiscordNET.Modules
 
             if (list != "blacklist" && list != "whitelist")
             {
-                await ReplyAsync("Invalid List Selection Parameter.");
+                await PrintText(":bangbang: You need select either the `whitelist` or the `blacklist` in order to use this command.");
                 return;
             }
             List<string> checklist = ( list == "blacklist" ) ? currentConfig.BlackList : currentConfig.WhiteList;
@@ -264,8 +267,8 @@ namespace DiscordNET.Modules
                     _guildConfig.Update(currentConfig);
                 }
             }
-
-            if (successString.Length != 0) await ReplyAsync($"{successString} Removed from **{list.ToUpper()}**");
+            if (!string.IsNullOrEmpty(successString.ToString()))
+                await PrintText($"Removed from **{ list.ToUpper()}**", successString.ToString());
         }
 
         [Command("checklist op")]
@@ -280,7 +283,7 @@ namespace DiscordNET.Modules
             }
             currentConfig.UseWhitelist = "blacklist" != mode;
             if (_guildConfig.Update(currentConfig))
-                await ReplyAsync("Successfully Updated Operation Mode");
+                await PrintText($":white_check_mark: Successfully updated operation mode to {mode}");
         }
 
         [Command("randomrr")]
@@ -290,7 +293,7 @@ namespace DiscordNET.Modules
 
             currentConfig.RandomRickroll = state;
             if (_guildConfig.Update(currentConfig))
-                await ReplyAsync("Successfully Updated the Database");
+                await PrintText(":white_check_mark: Successfully Updated the Database");
         }
     }
 }

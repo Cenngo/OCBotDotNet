@@ -37,7 +37,7 @@ namespace DiscordNET.Modules
 		{
 			if(_lavaNode.TryGetPlayer(Context.Guild, out var player))
 			{
-				var queue = player.Queue.Items;
+				var queue = player.Queue;
 				if (_playlistCollection.Exists(x => x.GuildId == Context.Guild.Id && x.Playlists.Exists(x => x.Name == name)))
 				{
 					await ReplyAsync("Playlist with the given name already exists");
@@ -51,7 +51,7 @@ namespace DiscordNET.Modules
 
                 foreach (var item in queue)
 				{
-					list.Add(((LavaTrackWithUser) item).Track);
+					list.Add(((LavaTrackWithUser) item));
 				}
 
 				DBList playlist = new DBList

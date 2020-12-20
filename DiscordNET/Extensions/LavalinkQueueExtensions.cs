@@ -3,15 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Victoria;
-using Victoria.Interfaces;
 
 namespace DiscordNET.Extensions
 {
     public static class LavalinkQueueExtensions
     {
-        public static void Swap(this DefaultQueue<IQueueable> queue, int first, int second)
+        public static void Swap(this DefaultQueue<LavaTrack> queue, int first, int second)
         {
-            var items = queue.Items.ToList();
+            var items = queue.ToList();
             var tmp = items[first];
             items[first] = items[second];
             items[second] = tmp;
@@ -19,9 +18,9 @@ namespace DiscordNET.Extensions
             EnqueueBulk(items, queue);
         }
 
-        public static void Move(this DefaultQueue<IQueueable> queue, int selectorIndex, int newPosition)
+        public static void Move(this DefaultQueue<LavaTrack> queue, int selectorIndex, int newPosition)
         {
-            var items = queue.Items.ToList();
+            var items = queue.ToList();
             var selection = items[selectorIndex];
             items.Remove(selection);
             items.Insert(newPosition, selection);
@@ -29,7 +28,7 @@ namespace DiscordNET.Extensions
             EnqueueBulk(items, queue);
         }
 
-        private static void EnqueueBulk(IEnumerable<IQueueable> items, DefaultQueue<IQueueable> queue)
+        private static void EnqueueBulk(IEnumerable<LavaTrack> items, DefaultQueue<LavaTrack> queue)
         {
             queue.Clear();
             foreach (var queueable in items)
