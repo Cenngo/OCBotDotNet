@@ -647,7 +647,29 @@ namespace DiscordNET.Modules
             string message = $":small_blue_diamond:**{result.FullTitle.ToUpper()}**:small_blue_diamond:\n```ini\n{lyrics}\n```";
 
             await ReplyAsync(message);
+        }
 
+        [Command("lyrics")]
+        public async Task Lyrics( string query)
+        {
+            string lyrics = await VictoriaCustomExtensions.GeniusLyrics(query, _auth.GeniusToken);
+
+            if (lyrics == null)
+            {
+                await ReplyAsync(embed: new EmbedBuilder()
+                {
+                    Title = "",
+                    Description = $":bangbang: No lyrics were found for {query}",
+                    Color = EmbedColor
+                }.Build());
+                return;
+            }
+
+            GSResult result = VictoriaCustomExtensions.SearchGenius(query, _auth.GeniusToken).Response.Hits.First().Result;
+
+            string message = $":small_blue_diamond:**{result.FullTitle.ToUpper()}**:small_blue_diamond:\n```ini\n{lyrics}\n```";
+
+            await ReplyAsync(message);
         }
 
         [Command("now playing")]

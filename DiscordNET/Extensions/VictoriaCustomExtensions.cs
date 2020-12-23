@@ -13,32 +13,21 @@ namespace DiscordNET.Extensions
 {
     public static class VictoriaCustomExtensions
     {
-        public static GeniusSearchResponse SearchGenius ( this LavaTrack lavaTrack, string token )
+        public static Task<string> GeniusLyrics ( string query, string token ) =>
+            FetchLyrics(query, token);
+
+        public static GeniusSearchResponse SearchGenius ( this LavaTrack lavaTrack, string token ) =>
+            Search(lavaTrack.Title, token);
+
+        public static GeniusSearchResponse SearchGenius ( string query, string token ) =>
+            Search(query, token);
+
+        public static async Task<string> GeniusLyrics ( this LavaTrack lavaTrack, string token ) =>
+            await FetchLyrics(lavaTrack.Title, token);
+
+        private static async Task<string> FetchLyrics (string title, string token )
         {
-            RestClient client = new RestClient($"https://api.genius.com/search")
-            {
-                Timeout = -1
-            };
-            RestRequest request = new RestRequest(Method.GET);
-
-            string query = lavaTrack.Title;
-            query = Regex.Replace(query, @"\(.*?\)", "");
-            query = Regex.Replace(query, @"\s{2,}", " ");
-
-            request.AddParameter("q", query);
-            request.AddHeader("User-Agent", "");
-            request.AddHeader("Content-Type", "");
-            request.AddHeader("Authorization", $"Bearer {token}");
-            IRestResponse response = client.Execute(request);
-
-            GeniusSearchResponse result = JsonConvert.DeserializeObject<GeniusSearchResponse>(response.Content);
-
-            return result;
-        }
-
-        public static async Task<string> GeniusLyrics ( this LavaTrack lavaTrack, string token )
-        {
-            GeniusSearchResponse searchResponse = lavaTrack.SearchGenius(token);
+            GeniusSearchResponse searchResponse = Search(title, token);
 
             if (searchResponse.Response.Hits.Count == 0)
                 return null;
@@ -61,6 +50,28 @@ namespace DiscordNET.Extensions
             HtmlNode lyricsNode = html.DocumentNode.SelectSingleNode("//body/routable-page/ng-non-bindable/div[3]/div[1]/div/div[1]/div/p");
             string lyrics = lyricsNode.InnerText;
             return lyrics;
+        }
+
+        private static GeniusSearchResponse Search (string query, string token)
+        {
+            RestClient client = new RestClient($"https://api.genius.com/search")
+            {
+                Timeout = -1
+            };
+            RestRequest request = new RestRequest(Method.GET);
+
+            query = Regex.Replace(query, @"\(.*?\)", "");
+            query = Regex.Replace(query, @"\s{2,}", " ");
+
+            request.AddParameter("q", query);
+            request.AddHeader("User-Agent", "");
+            request.AddHeader("Content-Type", "");
+            request.AddHeader("Authorization", $"Bearer {token}");
+            IRestResponse response = client.Execute(request);
+
+            GeniusSearchResponse result = JsonConvert.DeserializeObject<GeniusSearchResponse>(response.Content);
+
+            return result;
         }
 
         public static string GetArtwork(this LavaTrack track )

@@ -6,6 +6,7 @@ using DiscordNET.Handlers;
 using DiscordNET.Managers;
 using System;
 using System.IO;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 

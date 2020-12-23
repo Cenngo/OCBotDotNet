@@ -45,7 +45,7 @@ namespace DiscordNET.Managers
 
             _random = new Random(DateTime.Now.Second);
             _spotifyConfig = SpotifyClientConfig.CreateDefault().
-                WithAuthenticator(new ClientCredentialsAuthenticator("560f7c2b97f54d429ec5fb926edafc89", "ab2eabd7aa894ea3b69b19f1a738948a"));
+                WithAuthenticator(new ClientCredentialsAuthenticator(_auth.Spotify.ClientId, _auth.Spotify.ClientSecret));
         }
 
         public IServiceProvider BuildServiceProvider ( ) => new ServiceCollection()
