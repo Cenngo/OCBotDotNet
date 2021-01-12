@@ -2,6 +2,7 @@
 using HtmlAgilityPack;
 using Newtonsoft.Json;
 using RestSharp;
+using System;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -13,8 +14,8 @@ namespace DiscordNET.Extensions
 {
     public static class VictoriaCustomExtensions
     {
-        public static Task<string> GeniusLyrics ( string query, string token ) =>
-            FetchLyrics(query, token);
+        public static Task<string> GeniusLyrics ( string query, Func<string, string> queryModifier, string token ) =>
+            FetchLyrics(query, queryModifier, token);
 
         public static GeniusSearchResponse SearchGenius ( this LavaTrack lavaTrack, string token ) =>
             Search(lavaTrack.Title, token);
@@ -22,12 +23,12 @@ namespace DiscordNET.Extensions
         public static GeniusSearchResponse SearchGenius ( string query, string token ) =>
             Search(query, token);
 
-        public static async Task<string> GeniusLyrics ( this LavaTrack lavaTrack, string token ) =>
-            await FetchLyrics(lavaTrack.Title, token);
+        public static async Task<string> GeniusLyrics ( this LavaTrack lavaTrack, Func<string, string> queryModifier, string token ) =>
+            await FetchLyrics(lavaTrack.Title, queryModifier, token);
 
-        private static async Task<string> FetchLyrics (string title, string token )
+        private static async Task<string> FetchLyrics (string title, Func<string, string> queryModifier, string token )
         {
-            GeniusSearchResponse searchResponse = Search(title, token);
+            GeniusSearchResponse searchResponse = Search(title, queryModifier, token);
 
             if (searchResponse.Response.Hits.Count == 0)
                 return null;
@@ -60,9 +61,6 @@ namespace DiscordNET.Extensions
             };
             RestRequest request = new RestRequest(Method.GET);
 
-            query = Regex.Replace(query, @"\(.*?\)", "");
-            query = Regex.Replace(query, @"\s{2,}", " ");
-
             request.AddParameter("q", query);
             request.AddHeader("User-Agent", "");
             request.AddHeader("Content-Type", "");
@@ -74,9 +72,12 @@ namespace DiscordNET.Extensions
             return result;
         }
 
+        private static GeniusSearchResponse Search ( string query, Func<string, string> queryModifier, string token ) =>
+            Search(queryModifier(query), token);
+
         public static string GetArtwork(this LavaTrack track )
         {
-            var videoId = track.Url.Substring(track.Url.Length - 11);
+            var videoId = track.Url[^11..];
             return $"https://i.ytimg.com/vi/{videoId}/hqdefault.jpg";
         }
     }

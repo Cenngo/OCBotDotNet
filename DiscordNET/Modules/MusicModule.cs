@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Victoria;
@@ -629,7 +630,12 @@ namespace DiscordNET.Modules
 
             LavaTrack track = player.Track;
             string query = track.Title;
-            string lyrics = await track.GeniusLyrics(_auth.GeniusToken);
+            string lyrics = await VictoriaCustomExtensions.GeniusLyrics(query, 
+                (e) => {
+                    e = Regex.Replace(e, @"\(.*?\)", "");
+                    e = Regex.Replace(e, @"\s{2,}", " ");
+                    return e;
+                }, _auth.GeniusToken);
 
             if (lyrics == null)
             {
@@ -650,9 +656,14 @@ namespace DiscordNET.Modules
         }
 
         [Command("lyrics")]
-        public async Task Lyrics( string query)
+        public async Task Lyrics ([Remainder] string query)
         {
-            string lyrics = await VictoriaCustomExtensions.GeniusLyrics(query, _auth.GeniusToken);
+            string lyrics = await VictoriaCustomExtensions.GeniusLyrics(query, 
+                (e) => {
+                    e = Regex.Replace(e, @"\(.*?\)", "");
+                    e = Regex.Replace(e, @"\s{2,}", " ");
+                    return e;
+                }, _auth.GeniusToken);
 
             if (lyrics == null)
             {
